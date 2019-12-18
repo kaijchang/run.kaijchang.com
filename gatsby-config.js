@@ -11,6 +11,12 @@ module.exports = {
         },
         `gatsby-plugin-sharp`,
         `gatsby-transformer-sharp`,
+        {
+            resolve: `gatsby-plugin-google-analytics`,
+            options: {
+                trackingId: 'UA-140917974-3'
+            }
+        }
     ],
     siteMetadata: {
         blogUrl: 'https://blog.kaijchang.com',
