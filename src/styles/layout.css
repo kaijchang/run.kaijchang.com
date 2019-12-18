@@ -1,0 +1,49 @@
+html, body, #___gatsby, div[role=group], .container-fluid, #main {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+a:link, a:visited, a:active, a:hover {
+    color: rgba(0, 0, 0, .9);
+}
+
+a:link, a:visited, a:active {
+    text-decoration: none;
+    background: linear-gradient(to left, transparent 50%, lightgray 50%);
+    background-position: right bottom;
+    background-size: 200% 100%;
+    -moz-background-size: 200% 100%;
+    transition: all .5s ease;
+    -webkit-transition: all .5s ease;
+}
+
+a:hover {
+    background-position: left bottom;
+}
+
+h1 {
+    overflow: hidden; /* Ensures the content is not revealed until the animation */
+    border-right: 0.5em solid deepskyblue; /* The typewriter cursor */
+    white-space: nowrap; /* Keeps the content on a single line */
+    margin: 0 auto; /* Gives that scrolling effect as the typing happens */
+    letter-spacing: .15em; /* Adjust as needed */
+    animation:
+            typing 1.5s steps(50, end),
+            blink-caret .75s step-end infinite;
+}
+
+/* The typing effect */
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+/* The typewriter cursor effect */
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: deepskyblue; }
+}
