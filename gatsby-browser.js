@@ -1,3 +1,6 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'typeface-roboto';
-import './src/styles/layout.css';
+import React from 'react';
+import Layout from './src/layout';
+
+export const wrapPageElement = ({ element }) => <Layout>
+    { element }
+</Layout>;

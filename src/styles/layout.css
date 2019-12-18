@@ -1,6 +1,10 @@
-html, body, #___gatsby, div[role=group], .container-fluid, #main {
+html, body, #___gatsby, div[role=group], .container-fluid {
     height: 100%;
     margin: 0;
+}
+
+#main {
+    min-height: calc(100% - 52.8px - 40px);
 }
 
 body {
@@ -25,21 +29,12 @@ a:hover {
     background-position: left bottom;
 }
 
-h1 {
-    overflow: hidden; /* Ensures the content is not revealed until the animation */
+.caret {
+    margin: 0 auto;
     border-right: 0.5em solid deepskyblue; /* The typewriter cursor */
-    white-space: nowrap; /* Keeps the content on a single line */
-    margin: 0 auto; /* Gives that scrolling effect as the typing happens */
     letter-spacing: .15em; /* Adjust as needed */
     animation:
-            typing 1.5s steps(50, end),
             blink-caret .75s step-end infinite;
-}
-
-/* The typing effect */
-@keyframes typing {
-    from { width: 0 }
-    to { width: 100% }
 }
 
 /* The typewriter cursor effect */
