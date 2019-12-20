@@ -9,7 +9,7 @@ import { graphql } from 'gatsby';
 const Project = ({ fluid, title, repo, link, description, technologies }) => (
     <Card className='my-1'>
         <CardBody>
-            <GatsbyImage fluid={ fluid }/>
+            <GatsbyImage fluid={ fluid } style={ { maxWidth: 550, margin: '0 auto' } }/>
             <CardTitle>
                 <h3>{ title }</h3>
                 <i className='fas fa-link mr-1'/>
@@ -107,7 +107,7 @@ export const query = graphql`
             	node {
             	    name
               	    childImageSharp {
-                	    fluid(maxWidth: 1200) {
+                	    fluid(maxWidth: 550) {
                   	        ...GatsbyImageSharpFluid
               		    }
   	        		}

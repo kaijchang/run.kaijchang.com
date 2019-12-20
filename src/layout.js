@@ -31,7 +31,7 @@ export default ({ children }) => {
                 <div style={ { flexGrow: 1 } }/>
                 <Nav>
                     <NavItem className='mx-3'><Link to='/projects'>Projects</Link></NavItem>
-                    <NavItem className='mx-3'><Link to='/'>CTFs</Link></NavItem>
+                    <NavItem className='mx-3'><Link to='/ctfs'>CTFs</Link></NavItem>
                     <NavItem className='mx-3'>
                         <a href={ siteMetadata.blogUrl } target='_blank' rel='noopener noreferrer'>Blog</a>
                     </NavItem>
