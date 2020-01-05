@@ -1,41 +1,34 @@
 import React from 'react';
-import { Card, CardTitle, CardBody, CardText, Col, Row } from 'reactstrap';
-import GitHubButton from 'react-github-btn';
+import { Card, CardBody, CardText, Col, Row } from 'reactstrap';
+import GithubButton from 'react-github-btn';
 import GatsbyImage from 'gatsby-image';
 import Helmet from 'react-helmet';
 
 import { graphql } from 'gatsby';
 
-const Project = ({ fluid, title, repo, link, description, technologies }) => (
-    <Card className='my-1'>
-        <CardBody>
-            <GatsbyImage fluid={ fluid } style={ { maxWidth: 550, margin: '0 auto' } }/>
-            <CardTitle>
-                <h3>{ title }</h3>
-                <i className='fas fa-link mr-1'/>
-                <a href={ link } target='_blank' rel='noopener noreferrer'>
-                    { (new URL(link)).hostname }
-                </a>
-                <br/>
-                <GitHubButton
-                    href={ 'https://github.com/' + repo }
-                    data-show-count={ true } data-icon='octicon-star'
-                >
-                    Star
-                </GitHubButton>
-                <GitHubButton
-                    href={ 'https://github.com/' + repo + '/fork' }
-                    data-show-count={ true } data-icon='octicon-repo-forked'
-                >
-                    Fork
-                </GitHubButton>
-            </CardTitle>
-            <CardText>
-                <b>description:</b> { description }
-                <br/>
-                <b>technologies:</b> { technologies.join(', ') }
-            </CardText>
-        </CardBody>
+const Project = ({ fluid, repo, link, description, techonologies }) => (
+    <Card>
+        <a href={ link } target='_blank' rel='noopener noreferrer'>
+            <CardBody>
+                <GatsbyImage fluid={ fluid } style={ { maxWidth: 550 } }/>
+                <CardText className='my-1'>
+                    <span className='mr-1'>
+                        <GithubButton
+                            href={ 'https://github.com/' + repo }
+                            data-show-count={ true } data-icon='octicon-star'
+                        >Star</GithubButton>
+                    </span>
+                    <GithubButton
+                        href={ `https://github.com/${ repo }/fork` }
+                        data-show-count={ true } data-icon='octicon-repo-forked'
+                    >Fork</GithubButton>
+                    <br/>
+                    <b>{ techonologies.join(', ') }</b>
+                    <br/>
+                    { description }
+                </CardText>
+            </CardBody>
+        </a>
     </Card>
 );
 
@@ -51,44 +44,31 @@ export default ({ data }) => {
             </Helmet>
             <main className='d-flex flex-wrap' id='main'>
                 <Row>
-                    <Col md={ 6 } sm={ 12 }>
+                    <Col md={ 4 } sm={ 6 }>
                         <Project
                             fluid={ getImage('students-review') }
-                            title='Students Review'
+                            techonologies={ [ 'MERN (w/ gatsby)', 'python', 'graphql' ] }
                             repo='kajchang/studentsreview.me'
                             link='https://studentsreview.me'
-                            description='Collects and displays constructive reviews and class offering data for teachers at Lowell High School.'
-                            technologies={ ['MERN (w/ gatsby)', 'graphql'] }
+                            description='Building a website for Lowell High School students to see what which classes teachers teach and read and write reviews for teachers.'
                         />
                     </Col>
-                    <Col md={ 6 } sm={ 12 }>
+                    <Col md={ 4 } sm={ 6 }>
                         <Project
                             fluid={ getImage('studentvue') }
-                            title='StudentVue'
+                            techonologies={ [ 'python', 'web scraping' ] }
                             repo='kajchang/StudentVue'
                             link='https://github.com/kajchang/StudentVue'
-                            description='Allows students to programmatically query their schedule and grade data on the StudentVue by Synergy platform.'
-                            technologies={ ['bs4'] }
+                            description="Building an interface for students to programmatically query data from their district's student portal for their own applications."
                         />
                     </Col>
-                    <Col md={ 6 } sm={ 12 }>
+                    <Col md={ 4 } sm={ 6 }>
                         <Project
                             fluid={ getImage('sfpl') }
-                            title='SFPL'
+                            techonologies={ [ 'python', 'web scraping' ] }
                             repo='kajchang/SFPL'
                             link='https://github.com/kajchang/SFPL'
-                            description='Allows San Franciscans to programmatically query library data and perform actions such as holding books.'
-                            technologies={ ['bs4'] }
-                        />
-                    </Col>
-                    <Col md={ 6 } sm={ 12 }>
-                        <Project
-                            fluid={ getImage('college-mail-analyzer') }
-                            title='College Mail Analyzer'
-                            repo='kajchang/college-mail-analyzer'
-                            link='https://college.kaijchang.com'
-                            description="Analyzes college emails loaded from your Gmail account using data scraped from US News' college rankings."
-                            technologies={ ['d3', 'google apis'] }
+                            description='Building San Franciscans to programmatically query library data and perform actions such as holding books.'
                         />
                     </Col>
                 </Row>

@@ -31,7 +31,6 @@ export default ({ children }) => {
                 <div style={ { flexGrow: 1 } }/>
                 <Nav>
                     <NavItem className='mx-3'><Link to='/projects'>Projects</Link></NavItem>
-                    <NavItem className='mx-3'><Link to='/ctfs'>CTFs</Link></NavItem>
                     <NavItem className='mx-3'>
                         <a href={ siteMetadata.blogUrl } target='_blank' rel='noopener noreferrer'>Blog</a>
                     </NavItem>
@@ -40,7 +39,7 @@ export default ({ children }) => {
             { children }
             <Navbar light expand='md'>
                 <Nav>
-                    <NavItem className='mr-3'>© 2019 Kai Chang</NavItem>
+                    <NavItem className='mr-3'>© 2020 Kai Chang</NavItem>
                     <NavItem className='mr-3'>
                         <a href={ siteMetadata.githubUrl } target='_blank' rel='noopener noreferrer'>Github</a>
                     </NavItem>
