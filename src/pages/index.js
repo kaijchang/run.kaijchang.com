@@ -46,8 +46,8 @@ export default ({ data }) => {
                         <Project
                             fluid={ getImage('studentvue') }
                             name='StudentVue API'
-                            repo='kajchang/StudentVue'
-                            link='https://github.com/kajchang/StudentVue'
+                            repo='StudentVue-Community/StudentVue'
+                            link='https://github.com/StudentVue-Community/StudentVue'
                             description="Interface for students to programmatically query data from their district's student portal for their own applications."
                         />
                     </Col>
