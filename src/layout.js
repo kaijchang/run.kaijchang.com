@@ -27,14 +27,6 @@ export default ({ children }) => {
     return (
         <Container fluid>
             <Navbar light expand='md'>
-                <Link to='/'><h4>Home</h4></Link>
-                <div style={ { flexGrow: 1 } }/>
-                <Nav>
-                    <NavItem className='mx-3'><Link to='/projects'>Projects</Link></NavItem>
-                    <NavItem className='mx-3'>
-                        <a href={ siteMetadata.blogUrl } target='_blank' rel='noopener noreferrer'>Blog</a>
-                    </NavItem>
-                </Nav>
             </Navbar>
             { children }
             <Navbar light expand='md'>
