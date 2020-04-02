@@ -29,7 +29,7 @@ export default ({ data }) => {
                         <Project
                             fluid={ getImage('students-review') }
                             name='studentsreview.me'
-                            repo='kajchang/studentsreview.me'
+                            repo='studentsreview/studentsreview.me'
                             link='https://studentsreview.me'
                             description='Website for Lowell High School students to see what which classes teachers teach and read and write reviews for teachers.'
                         />
@@ -45,16 +45,16 @@ export default ({ data }) => {
                     <Col md={ 6 } sm={ 10 } className='my-2 mx-1'>
                         <Project
                             fluid={ getImage('studentvue') }
-                            name='StudentVue API'
-                            repo='StudentVue-Community/StudentVue'
-                            link='https://github.com/StudentVue-Community/StudentVue'
+                            name='StudentVue API Client'
+                            repo='StudentVue-Community/StudentVue.py'
+                            link='https://github.com/StudentVue-Community/StudentVue.py'
                             description="Interface for students to programmatically query data from their district's student portal for their own applications."
                         />
                     </Col>
                     <Col md={ 6 } sm={ 10 } className='my-2 mx-1'>
                         <Project
                             fluid={ getImage('sfpl') }
-                            name='SFPL API'
+                            name='SFPL API Client'
                             repo='kajchang/SFPL'
                             link='https://github.com/kajchang/SFPL'
                             description='Interface for San Franciscans to programmatically query library data and perform actions such as holding books.'
