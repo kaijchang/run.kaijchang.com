@@ -1,12 +1,10 @@
-import React  from 'react';
-import { Container, Nav, Navbar, NavItem } from 'reactstrap';
-import { Link } from 'gatsby';
+import React, { useEffect, useState } from 'react';
+import Marquee from 'react-double-marquee';
 
 import { graphql, useStaticQuery } from 'gatsby';
+import moment from 'moment';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
 import 'typeface-roboto';
-import '@fortawesome/fontawesome-free/css/all.min.css';
 import './styles/layout.css';
 
 export default ({ children }) => {
@@ -17,6 +15,7 @@ export default ({ children }) => {
                     blogUrl
                     githubUrl
                     linkedinUrl
+                    emailAddress
                 }
             }
         }
@@ -25,21 +24,24 @@ export default ({ children }) => {
     const siteMetadata = data.site.siteMetadata;
 
     return (
-        <Container fluid>
-            <Navbar light expand='md'>
-            </Navbar>
-            { children }
-            <Navbar light expand='md'>
-                <Nav>
-                    <NavItem className='mr-3'>© 2020 Kai Chang</NavItem>
-                    <NavItem className='mr-3'>
+        <>
+            <div className='fixed flex flex-col h-30 w-screen p-5'>
+                <div className='flex flex-row items-center'>
+                    <h3 className='text-lg ml-5'>
                         <a href={ siteMetadata.githubUrl } target='_blank' rel='noopener noreferrer'>Github</a>
-                    </NavItem>
-                    <NavItem className='mr-3'>
+                    </h3>
+                    <h3 className='text-lg ml-5'>
                         <a href={ siteMetadata.linkedinUrl } target='_blank' rel='noopener noreferrer'>Linkedin</a>
-                    </NavItem>
-                </Nav>
-            </Navbar>
-        </Container>
+                    </h3>
+                    <h3 className='text-lg ml-5'>
+                        <a href={ siteMetadata.blogUrl } target='_blank' rel='noopener noreferrer'>Blog</a>
+                    </h3>
+                    <h3 className='text-lg ml-5'>
+                        <a href={ 'mailto:' + siteMetadata.emailAddress } target='_blank' rel='noopener noreferrer'>Email</a>
+                    </h3>
+                </div>
+            </div>
+            { children }
+        </>
     );
 }

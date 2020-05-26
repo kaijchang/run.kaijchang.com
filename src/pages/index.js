@@ -1,87 +1,87 @@
-import React from 'react';
+import React, { useEffect, useState } from "react"
 import Helmet from 'react-helmet';
-import { Col, Row } from 'reactstrap';
-import Project from '../components/Project';
+import Marquee from 'react-double-marquee';
 
-import { graphql } from 'gatsby';
+import moment from 'moment';
 
-export default ({ data }) => {
-    const images = data.allFile.edges;
+export default () => {
+    const [feed, setFeed] = useState([]);
 
-    const getImage = name => images.find(({ node }) => node.name === name).node.childImageSharp.fluid;
+    useEffect(() => {
+        fetch('https://api.github.com/users/kajchang/events/public')
+            .then(res => res.json())
+            .then(data => {
+                for (let datum of data) {
+                    const timestamp = moment(datum.created_at);
+                    if (datum.type === 'PushEvent') {
+                        setFeed(feed => [...feed, [<a href={ 'https://github.com/' + datum.repo.name + '/commit/' + datum.payload.head }>
+                            pushed { datum.payload.head.substr(0, 6) } to { datum.repo.name } {
+                            moment.duration(moment(timestamp).diff(moment())).humanize(true) }
+                        </a>, timestamp]]);
+                    } else if (datum.type === 'CreateEvent' && datum.payload.ref_type === 'repository') {
+                        setFeed(feed => [...feed, [<a href={ 'https://github.com/' + datum.repo.name }>
+                            created { datum.repo.name } { moment.duration(moment(timestamp).diff(moment())).humanize(true) }
+                        </a>, timestamp]]);
+                    }
+                }
+            });
+
+        fetch('https://cors-anywhere.herokuapp.com/https://feedmyride.net/activities/57977907')
+            .then(res => {
+                const reader = res.body.getReader();
+                return new ReadableStream({
+                    start(controller) {
+                        return pump();
+                        function pump() {
+                            return reader.read().then(({ done, value }) => {
+                                // When no more data needs to be consumed, close the stream
+                                if (done) {
+                                    controller.close();
+                                    return;
+                                }
+                                // Enqueue the next data chunk into our target stream
+                                controller.enqueue(value);
+                                return pump();
+                            });
+                        }
+                    }
+                })
+            })
+            .then(stream => new Response(stream))
+            .then(response => response.blob())
+            .then(blob => blob.text())
+            .then(text => {
+                const rssFeed = new window.DOMParser().parseFromString(text, 'text/xml');
+                for (let item of rssFeed.getElementsByTagName('item')) {
+                    console.log(item.getElementsByTagName('title')[0].textContent);
+                    const timestamp = moment(item.getElementsByTagName('pubDate')[0].textContent);
+                    setFeed(feed => [...feed, [<a href={ item.getElementsByTagName('link')[0].textContent }>
+                        { /Distance: ([0-9.]+km)/.exec(item.getElementsByTagName('description')[0].textContent)[1] }
+                        { ' ' }{ item.getElementsByTagName('title')[0].textContent }
+                        { ' ' }{ moment.duration(moment(timestamp).diff(moment())).humanize(true) }
+                    </a>, timestamp]])
+                }
+            });
+    }, []);
 
     return (
         <>
             <Helmet>
-                <title>kachang's site</title>
+                <title>website</title>
             </Helmet>
-            <main className='d-flex flex-column' id='main'>
-                <div className='d-flex flex-column' style={ { height: '50vh' } }>
-                    <div style={ { flexGrow: 1 } }/>
-                    <h1 className='caret'>Kai Chang</h1>
-                    <div style={ { flexGrow: 1 } }/>
+            <div className='flex flex-col justify-center h-screen mx-auto text-center'>
+                <h1 className='text-3xl'>Kai Chang • 张俊洙</h1>
+                <h3 className='text-lg'>San Francisco, California</h3>
+                <div className='whitespace-no-wrap w-full'>
+                    <Marquee delay={ 0 } direction='left' speed={ 0.15 }>
+                        { feed.length > 2 ? feed
+                                .sort((a, b) => b[1].diff(a[1]))
+                                .reduce((acc, cur) => [acc, ' | ', cur[0]], [])
+                            : null
+                        }
+                    </Marquee>
                 </div>
-                <Row className='d-flex justify-content-around' style={ { background: '#766ec8' } }>
-                    <Col sm={ 12 }>
-                        <h1 className='my-5' style={ { color: 'white', textAlign: 'center' } }>Projects</h1>
-                    </Col>
-                    <Col md={ 6 } sm={ 10 } className='my-2 mx-1'>
-                        <Project
-                            fluid={ getImage('students-review') }
-                            name='studentsreview.me'
-                            repo='studentsreview/studentsreview.me'
-                            link='https://studentsreview.me'
-                            description='Website for Lowell High School students to see what which classes teachers teach and read and write reviews for teachers.'
-                        />
-                    </Col>
-                    <Col md={ 6 } sm={ 10 } className='my-2 mx-1'>
-                        <Project
-                            fluid={ getImage('mock-primary') }
-                            name='Lowell Mock Primary'
-                            link='https://vote.lowellhs.org'
-                            description="Interactive website to view primary results from Lowell's Mock Primary that I co-organized."
-                        />
-                    </Col>
-                    <Col md={ 6 } sm={ 10 } className='my-2 mx-1'>
-                        <Project
-                            fluid={ getImage('studentvue') }
-                            name='StudentVue API Client'
-                            repo='StudentVue-Community/StudentVue.py'
-                            link='https://github.com/StudentVue-Community/StudentVue.py'
-                            description="Interface for students to programmatically query data from their district's student portal for their own applications."
-                        />
-                    </Col>
-                    <Col md={ 6 } sm={ 10 } className='my-2 mx-1'>
-                        <Project
-                            fluid={ getImage('sfpl') }
-                            name='SFPL API Client'
-                            repo='kajchang/SFPL'
-                            link='https://github.com/kajchang/SFPL'
-                            description='Interface for San Franciscans to programmatically query library data and perform actions such as holding books.'
-                        />
-                    </Col>
-                    <Col sm={ 12 } className='my-5'></Col>
-                </Row>
-            </main>
+            </div>
         </>
     )
 };
-
-export const query = graphql`
-    query {
-        allFile(filter: {
-            relativeDirectory: { eq: "projects" }
-        }) {
-  	        edges {
-            	node {
-            	    name
-              	    childImageSharp {
-                	    fluid(maxWidth: 400) {
-                  	        ...GatsbyImageSharpFluid
-              		    }
-  	        		}
-  	        	}
-  	        }
-        }
-    }
-`;

@@ -1,44 +1,10 @@
-html, body, #___gatsby, div[role=group], .container-fluid {
-    height: 100%;
-    margin: 0;
-}
+@tailwind base;
 
-#main {
-    min-height: calc(100% - 52.8px - 40px);
-}
+@tailwind components;
+
+@tailwind utilities;
 
 body {
+    @apply bg-gray-500;
     font-family: 'Roboto', sans-serif;
-}
-
-a:link, a:visited, a:active, a:hover {
-    color: rgba(0, 0, 0, .9);
-}
-
-a:link, a:visited, a:active {
-    text-decoration: none;
-    background: linear-gradient(to left, transparent 50%, lightgray 50%);
-    background-position: right bottom;
-    background-size: 200% 100%;
-    -moz-background-size: 200% 100%;
-    transition: all .5s ease;
-    -webkit-transition: all .5s ease;
-}
-
-a:hover {
-    background-position: left bottom;
-}
-
-.caret {
-    margin: 0 auto;
-    border-right: 0.5em solid deepskyblue; /* The typewriter cursor */
-    letter-spacing: .15em; /* Adjust as needed */
-    animation:
-            blink-caret .75s step-end infinite;
-}
-
-/* The typewriter cursor effect */
-@keyframes blink-caret {
-    from, to { border-color: transparent }
-    50% { border-color: deepskyblue; }
 }
