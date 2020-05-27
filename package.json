@@ -12,13 +12,10 @@
     "gatsby": "^2.18.13",
     "gatsby-plugin-google-analytics": "^2.1.31",
     "gatsby-plugin-postcss": "^2.3.2",
-    "moment": "^2.26.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-double-marquee": "^1.0.5",
     "react-helmet": "^5.2.1",
-    "tailwindcss": "^1.4.6",
-    "typeface-roboto": "^0.0.75"
+    "tailwindcss": "^1.4.6"
   },
   "devDependencies": {
     "prettier": "^1.18.0"
