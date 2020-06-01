@@ -2,6 +2,10 @@
 
 @tailwind components;
 
+ul.list-horiz > li {
+    @apply mx-2;
+}
+
 @tailwind utilities;
 
 body {
