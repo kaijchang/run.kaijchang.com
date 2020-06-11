@@ -2,13 +2,9 @@
 
 @tailwind components;
 
-ul.list-horiz > li {
-    @apply mx-2;
-}
-
 @tailwind utilities;
 
 body {
-    @apply bg-gray-700 text-gray-100;
+    @apply bg-yellow-200;
     font-family: 'Helvetica Neue', sans-serif;
 }
