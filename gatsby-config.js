@@ -1,7 +1,6 @@
-const path = require('path');
-
 module.exports = {
     plugins: [
+        `gatsby-source-strava`,
         `gatsby-plugin-postcss`,
         {
             resolve: `gatsby-plugin-google-analytics`,
