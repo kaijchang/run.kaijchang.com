@@ -2,6 +2,7 @@ module.exports = {
     plugins: [
         `gatsby-source-strava`,
         `gatsby-plugin-postcss`,
+        `gatsby-plugin-typescript`,
         {
             resolve: `gatsby-plugin-google-analytics`,
             options: {

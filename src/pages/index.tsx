@@ -1,9 +1,8 @@
 import React from 'react'
-import Helmet from 'react-helmet';
-
-import { graphql } from 'gatsby';
 
 import { OutboundLink } from 'gatsby-plugin-google-analytics';
+
+import { graphql } from 'gatsby';
 
 import '../styles/layout.css';
 
@@ -15,7 +14,7 @@ export default ({ data }) => {
     console.log(data);
     return (
         <>
-            
+            hello
         </>
     )
 };
