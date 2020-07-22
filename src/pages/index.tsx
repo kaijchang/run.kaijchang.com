@@ -78,7 +78,7 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
           id='runs'
           type='line'
           paint={ {
-            'line-color': '#D3C1C3',
+            'line-color': '#c05e59',
             'line-width': 2,
           } }
           layout={ {
