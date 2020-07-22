@@ -14,6 +14,7 @@ type Run = {
   elapsed_time: number;
   average_speed: number;
   average_heartrate: number;
+  total_elevation_gain: number;
   start_date_local: string;
   map: {
     summary_polyline: string;
@@ -78,9 +79,9 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
 };
 
 const RunSummary = ({ activityNodes }) => {
-  const [totalTime, totalDistance, numRuns] = useMemo(() => activityNodes.reduce((accs, { activity }: { activity: Run }) => {
-    return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, ++accs[2]];
-  }, [0, 0, 0]), []);
+  const [totalTime, totalDistance, totalElevationGain, numRuns] = useMemo(() => activityNodes.reduce((accs, { activity }: { activity: Run }) => {
+    return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
+  }, [0, 0, 0, 0]), []);
 
   return (
     <div className='flex flex-col font-mono'>
@@ -97,6 +98,9 @@ const RunSummary = ({ activityNodes }) => {
         { formatDistance(metersToMiles(totalDistance)) }
       </h2>
       <h2 className='text-2xl my-2'>
+        { metersToFeet(totalElevationGain).toLocaleString() } ft Elev. Gain
+      </h2>
+      <h2 className='text-2xl my-2'>
         { numRuns } Runs
       </h2>
     </div>
@@ -107,7 +111,7 @@ const RunTable = ({ activityNodes }) => {
   const columns = useMemo(() => ([
     {
       Header: 'Date',
-      Cell: ({ value }) => new Date(value).toLocaleDateString(),
+      Cell: ({ value }) => formatDate(new Date(value)),
       accessor: 'activity.start_date_local',
       width: 1
     },
@@ -129,7 +133,7 @@ const RunTable = ({ activityNodes }) => {
       width: 1
     },
     {
-      Header: 'Pace',
+      Header: 'Pace (min/mi)',
       Cell: ({ value }) => formatPace(metersPerSecondToMinutesPerMile(value)),
       accessor: 'activity.average_speed',
       width: 1
@@ -215,11 +219,13 @@ export default ({ data }) => (
 
 const metersPerSecondToMinutesPerMile = (mps: number) => 26.8224 / mps;
 const metersToMiles = (m: number) => m / 1609;
+const metersToFeet = (m : number) => m * 3.281;
 
+const formatDate = (d: Date) => `${d.getMonth() + 1}-${d.getDate()}`;
 const formatPace = (minutesPerMile: number) => {
   const minutes = String(Math.floor(minutesPerMile));
   const seconds = String(Math.round(minutesPerMile % 1 * 60));
-  return `${minutes}:${seconds.length == 1 ? '0' + seconds : seconds} min/mi`;
+  return `${minutes}:${seconds.length == 1 ? '0' + seconds : seconds}`;
 };
 const formatTime = (timeElapsed: number) => {
   const hours = Math.floor(timeElapsed / 60 / 60);
@@ -247,6 +253,7 @@ export const query = graphql`
           elapsed_time
           average_speed
           start_date_local
+          total_elevation_gain
           map {
             summary_polyline
           }
