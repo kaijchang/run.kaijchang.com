@@ -5070,9 +5070,9 @@ gatsby-react-router-scroll@^2.1.19:
     scroll-behavior "^0.9.10"
     warning "^3.0.0"
 
-"gatsby-source-strava@https://github.com/kajchang/gatsby-source-strava.git":
+"gatsby-source-strava@https://github.com/kajchang/gatsby-source-strava.git#build":
   version "2.0.0-beta.10"
-  resolved "https://github.com/kajchang/gatsby-source-strava.git#b16c817aab499ff1e448f398b1a26e545299c108"
+  resolved "https://github.com/kajchang/gatsby-source-strava.git#da1790227e66800926c2d8e5c4ab3bef172fdbfa"
   dependencies:
     dotenv "^8.2.0"
     glob "^7.1.6"
