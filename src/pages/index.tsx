@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import ReactMapGL, { Source, Layer } from 'react-map-gl';
 
 import { graphql } from 'gatsby';
+import { useTable } from 'react-table';
 import polyline from '@mapbox/polyline';
 
 import '../styles/layout.css';
@@ -77,20 +78,128 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
   );
 };
 
+const RunTable = ({ activityNodes }) => {
+  const columns = useMemo(() => ([
+    {
+      Header: 'Name',
+      accessor: 'activity.name'
+    },
+    {
+      Header: 'Date',
+      Cell: ({ value }) => new Date(value).toLocaleDateString(),
+      accessor: 'activity.start_date_local'
+    },
+    {
+      Header: 'Pace',
+      Cell: ({ value }) => formatPace(metersPerSecondToMinutesPerMile(value)),
+      accessor: 'activity.average_speed'
+    },
+    {
+      Header: 'Time',
+      Cell: ({ value }) => formatTime(value),
+      accessor: 'activity.elapsed_time'
+    },
+    {
+      Header: 'Distance',
+      Cell: ({ value }) => formatDistance(metersToMiles(value)),
+      accessor: 'activity.distance'
+    }
+  ]), []);
+
+  const tableInstance = useTable({
+    data: activityNodes,
+    columns
+  });
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+  } = tableInstance;
+
+  return (
+    <table { ...getTableProps() }>
+      <thead>
+        {
+          headerGroups.map(headerGroup => (
+            <tr {...headerGroup.getHeaderGroupProps()}>
+              {
+                headerGroup.headers.map(column => (
+                  <th {...column.getHeaderProps()}>
+                    { column.render('Header') }
+                  </th>
+               ))
+              }
+           </tr>
+         ))
+        }
+      </thead>
+      <tbody {...getTableBodyProps()}>
+        {
+          rows.map(row => {
+            prepareRow(row)
+
+            return (
+              <tr {...row.getRowProps()}>
+                {
+                  row.cells.map(cell => {
+                    return (
+                      <td {...cell.getCellProps()}>
+                        { cell.render('Cell') }
+                      </td>
+                    );
+                  })
+                }
+              </tr>
+            );
+          })
+        }
+      </tbody>
+    </table>
+  );
+};
+
 export default ({ data }) => (
-  <RunMap activityNodes={ data.allStravaActivity.nodes }/>
+  <>
+    <RunMap activityNodes={ data.allStravaActivity.nodes }/>
+    <RunTable activityNodes={ data.allStravaActivity.nodes }/>
+  </>
 );
 
-export const qxuery = graphql`
+const metersPerSecondToMinutesPerMile = (mps: number) => 26.8224 / mps;
+const metersToMiles = (m: number) => m / 1609;
+
+const formatPace = (minutesPerMile: number) => {
+  const minutes = String(Math.floor(minutesPerMile));
+  const seconds = String(Math.round(minutesPerMile % 1 * 60));
+  return `${minutes}:${seconds.length == 1 ? '0' + seconds : seconds} min/mi`;
+};
+const formatTime = (timeElapsed: number) => {
+  const hours = Math.floor(timeElapsed / 60 / 60);
+  timeElapsed -= hours * 60 * 60;
+  let minutes = Math.floor(timeElapsed / 60);
+  timeElapsed -= minutes * 60;
+  const minuteStr = hours > 0 && minutes < 10 ? '0' + minutes : String(minutes);
+  const secondStr = timeElapsed < 10 ? '0' + timeElapsed : String(timeElapsed);
+  return `${ hours > 0 ? hours + ':' : '' }${minuteStr}:${secondStr}`;
+};
+const formatDistance = (miles: number) => miles.toFixed(2) + ' mi';
+
+export const query = graphql`
   query {
-    allStravaActivity {
+    allStravaActivity(filter: {
+      activity: {
+        type: { eq: "Run" }
+      }
+    }) {
       nodes {
         activity {
           name
           distance
           elapsed_time
           average_speed
-          average_heartrate
           start_date_local
           map {
             summary_polyline
