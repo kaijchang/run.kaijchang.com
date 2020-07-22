@@ -1,6 +1,11 @@
 module.exports = {
     plugins: [
-        `gatsby-source-strava`,
+        {
+            resolve: `gatsby-source-strava`,
+            options: {
+                debug: true
+            }
+        },
         `gatsby-plugin-postcss`,
         `gatsby-plugin-typescript`,
         {
