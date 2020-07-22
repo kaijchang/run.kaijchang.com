@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import ReactMapGL, { Source, Layer } from 'react-map-gl';
+import { ViewportProvider, useDimensions } from 'react-viewport-utils';
 
 import { graphql } from 'gatsby';
 import { useTable, useFlexLayout, useSortBy } from 'react-table';
@@ -34,12 +35,24 @@ type RunMapProps = {
 };
 
 const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
-  const [viewport, setViewPort] = useState({
-    width: 600,
+  const [viewport, setViewport] = useState({
+    width: '100%',
     height: 400,
     zoom: 10.5,
     ...SAN_FRANCISCO_COORDS
   });
+
+  const [lastWidth, setLastWidth] = useState(0);
+  const dimensions = useDimensions({
+    deferUpdateUntilIdle: true,
+    disableScrollUpdates: true,
+  });
+  if (lastWidth !== dimensions.width) {
+    setTimeout(() => {
+      setViewport({ width: '100%', ...viewport });
+      setLastWidth(dimensions.width);
+    }, 0);
+  }
 
   const geoData = useMemo(() => ({
     type: 'FeatureCollection',
@@ -57,7 +70,7 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
       mapboxApiAccessToken={ MAPBOX_TOKEN }
       mapStyle='mapbox://styles/kachang/ckcwjwqej0bjg1ir4v9y95fu4'
       // @ts-ignore
-      onViewportChange={ setViewPort }
+      onViewportChange={ setViewport }
     >
       { /* @ts-ignore */ }
       <Source id='data' type='geojson' data={geoData}>
@@ -77,6 +90,12 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
     </ReactMapGL>
   );
 };
+
+const RunMapWithViewport: React.FC<RunMapProps> = (props) => (
+  <ViewportProvider>
+    <RunMap {...props}/>
+  </ViewportProvider>
+);
 
 const RunSummary = ({ activityNodes }) => {
   const [totalTime, totalDistance, totalElevationGain, numRuns] = useMemo(() => activityNodes.reduce((accs, { activity }: { activity: Run }) => {
@@ -162,7 +181,7 @@ const RunTable = ({ activityNodes }) => {
   } = tableInstance;
 
   return (
-    <div className='w-full text-left mx-auto' { ...getTableProps() }>
+    <div className='w-full text-left' { ...getTableProps() }>
       <div>
         {
           headerGroups.map(headerGroup => (
@@ -210,7 +229,7 @@ export default ({ data }) => (
         <RunSummary activityNodes={ data.allStravaActivity.nodes }/>
       </div>
       <div className='md:mx-3'/>
-      <div className='flex flex-col items-center md:items-start sm:mx-6'>
+      <div className='flex flex-col items-stretch md:items-start md:w-1/2 sm:mx-6'>
         <RunMap activityNodes={ data.allStravaActivity.nodes }/>
         <div className='my-3'/>
         <RunTable activityNodes={ data.allStravaActivity.nodes }/>
