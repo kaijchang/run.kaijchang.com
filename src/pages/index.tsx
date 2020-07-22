@@ -7,9 +7,12 @@ import { graphql } from 'gatsby';
 import { useTable, useFlexLayout, useSortBy } from 'react-table';
 import polyline from '@mapbox/polyline';
 
+import { Row } from 'react-table';
+
 import '../styles/layout.css';
 
 type Run = {
+  id: number;
   name: string;
   distance: number;
   elapsed_time: number;
@@ -199,11 +202,15 @@ const RunTable = ({ activityNodes }) => {
       </div>
       <div {...getTableBodyProps()}>
         {
-          rows.map(row => {
-            prepareRow(row)
-
+          rows.map((row: Row) => {
+            prepareRow(row);
+            const run: Run = row.original.activity;
             return (
-              <div {...row.getRowProps()}>
+              <div
+                className='hover:bg-Black-Shadows cursor-pointer'
+                onClick={ () => window.location.href = `https://strava.com/activities/${run.id}` }
+                {...row.getRowProps()}
+              >
                 {
                   row.cells.map(cell => {
                     return (
@@ -230,7 +237,7 @@ export default ({ data }) => (
       </div>
       <div className='md:mx-3'/>
       <div className='flex flex-col items-stretch md:items-start md:w-1/2 sm:mx-6'>
-        <RunMap activityNodes={ data.allStravaActivity.nodes }/>
+        <RunMapWithViewport activityNodes={ data.allStravaActivity.nodes }/>
         <div className='my-3'/>
         <RunTable activityNodes={ data.allStravaActivity.nodes }/>
       </div>
@@ -269,6 +276,7 @@ export const query = graphql`
     }) {
       nodes {
         activity {
+          id
           name
           distance
           elapsed_time
