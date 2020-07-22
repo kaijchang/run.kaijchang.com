@@ -205,10 +205,10 @@ const RunTable = ({ activityNodes }) => {
 
 export default ({ data }) => (
   <>
-    <div className='flex flex-col md:flex-row justify-around mx-6 my-6'>
+    <div className='flex flex-col lg:flex-row justify-around mx-6 my-6'>
       <RunSummary activityNodes={ data.allStravaActivity.nodes }/>
-      <div className='md:mx-3'/>
-      <div className='flex flex-col'>
+      <div className='lg:mx-3'/>
+      <div className='flex flex-col items-center lg:items-start'>
         <RunMap activityNodes={ data.allStravaActivity.nodes }/>
         <div className='my-3'/>
         <RunTable activityNodes={ data.allStravaActivity.nodes }/>
