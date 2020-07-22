@@ -85,7 +85,7 @@ const RunSummary = ({ activityNodes }) => {
 
   return (
     <div className='flex flex-col font-mono'>
-      <h1 className='text-4xl'>2020 Running Overview</h1>
+      <h1 className='text-4xl'>2020 Running Log</h1>
       <p className='text-md mb-4'>
         <a href='https://yihong.run/running'>Inspired by yihong.run</a>
         {' '}&bull;{' '}
@@ -205,10 +205,12 @@ const RunTable = ({ activityNodes }) => {
 
 export default ({ data }) => (
   <>
-    <div className='flex flex-col lg:flex-row justify-around mx-6 my-6'>
-      <RunSummary activityNodes={ data.allStravaActivity.nodes }/>
-      <div className='lg:mx-3'/>
-      <div className='flex flex-col items-center lg:items-start'>
+    <div className='flex flex-col md:flex-row justify-around my-6'>
+      <div className='mx-6'>
+        <RunSummary activityNodes={ data.allStravaActivity.nodes }/>
+      </div>
+      <div className='md:mx-3'/>
+      <div className='flex flex-col items-center md:items-start sm:mx-6'>
         <RunMap activityNodes={ data.allStravaActivity.nodes }/>
         <div className='my-3'/>
         <RunTable activityNodes={ data.allStravaActivity.nodes }/>
