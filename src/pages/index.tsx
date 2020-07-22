@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import ReactMapGL, { Source, Layer } from 'react-map-gl';
 
 import { graphql } from 'gatsby';
-import { useTable } from 'react-table';
+import { useTable, useSortBy } from 'react-table';
 import polyline from '@mapbox/polyline';
 
 import '../styles/layout.css';
@@ -108,8 +108,16 @@ const RunTable = ({ activityNodes }) => {
 
   const tableInstance = useTable({
     data: activityNodes,
-    columns
-  });
+    columns,
+    initialState: {
+      sortBy: [
+        {
+          id: 'activity.start_date_local',
+          desc: true
+        }
+      ]
+    }
+  }, useSortBy);
 
   const {
     getTableProps,
