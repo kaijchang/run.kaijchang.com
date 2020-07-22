@@ -2,4 +2,13 @@
 
 @tailwind components;
 
+/* https://codepen.io/mehi/pen/MyWqPM */
+
+.link-underline {
+  text-decoration: underline;
+  text-decoration-color: #F15152;
+  text-decoration-thickness: .125em;
+  text-underline-offset: 1.5px;
+}
+
 @tailwind utilities;

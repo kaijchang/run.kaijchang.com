@@ -3,11 +3,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "Black-Shadows": "#d3c1c3",
-        "Almond": "#e2d0be",
-        "Lemon-Meringue": "#eee5bf",
-        "Pale-Spring-Bud": "#e8f8c1",
-        "Tea-Green": "#d1ffc6",
+        "Black-Coffee":"#3a2e39","Dark-Slate-Gray":"#1e555c","Champagne-Pink":"#f4d8cd","Middle-Yellow-Red":"#edb183","Red-Salsa":"#f15152",
         Strava: '#FC4C02'
       }
     },

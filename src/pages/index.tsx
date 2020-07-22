@@ -7,7 +7,7 @@ import { graphql } from 'gatsby';
 import { useTable, useFlexLayout, useSortBy } from 'react-table';
 import polyline from '@mapbox/polyline';
 
-import { Row } from 'react-table';
+import { Cell, Row } from 'react-table';
 
 import '../styles/layout.css';
 
@@ -109,7 +109,7 @@ const RunSummary = ({ activityNodes }) => {
     <div className='flex flex-col font-mono'>
       <h1 className='text-4xl'>2020 Running Log</h1>
       <p className='text-md'>
-        <a href='https://yihong.run/running'>Inspired by yihong.run</a>
+        <a href='https://yihong.run/running' className='link-underline'>Inspired by yihong.run</a>
         {' '}&bull;{' '}
         <a>Built using Mapbox and Strava</a>
       </p>
@@ -196,7 +196,7 @@ const RunTable = ({ activityNodes }) => {
       <div>
         {
           headerGroups.map(headerGroup => (
-            <div className='bg-Almond' {...headerGroup.getHeaderGroupProps()}>
+            <div className='bg-Middle-Yellow-Red' {...headerGroup.getHeaderGroupProps()}>
               {
                 headerGroup.headers.map(column => (
                   <div className='font-bold py-2 px-4' {...column.getHeaderProps()}>
@@ -215,14 +215,17 @@ const RunTable = ({ activityNodes }) => {
             const run: Run = row.original.activity;
             return (
               <div
-                className='hover:bg-Black-Shadows cursor-pointer'
+                className='hover:bg-Champagne-Pink cursor-pointer'
                 onClick={ () => window.location.href = `https://strava.com/activities/${run.id}` }
                 {...row.getRowProps()}
               >
                 {
-                  row.cells.map(cell => {
+                  row.cells.map((cell: Cell) => {
                     return (
-                      <div className='py-2 px-4' {...cell.getCellProps()}>
+                      <div
+                        className={ `py-2 px-4 ${ cell.column.id != columns[columns.length - 1].accessor ? 'border-r-2 border-Black-Coffee' : ''  }` }
+                        {...cell.getCellProps()}
+                      >
                         { cell.render('Cell') }
                       </div>
                     );
