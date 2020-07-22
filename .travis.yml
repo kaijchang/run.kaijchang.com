@@ -1,13 +1,14 @@
 language: node_js
 node_js: 10.16.0
-
 script:
-  - yarn build
-
+- yarn build
 deploy:
   provider: pages
   skip-cleanup: true
-  github-token: $GITHUB_TOKEN
+  github-token: "$GITHUB_TOKEN"
   local_dir: public
   on:
     branch: master
+env:
+  global:
+    secure: dd2bwqfZRs6tHFlbpElMpf9uaygK6jXz/th6Ih4RzFZ+qemS/KEomN3Sc5p9SYAgkZTidGWIK2danqwt9j0QeGuQJ/DXEqD9wIux69M4lWsoSA0nVRTnowxwLabOCoKJgm4tFmpj3eqmI/zctU5tJB4D0wsR4zEFenrpAesPJ/tmIhwrJcXJsNEXf4XKSemj+9128erv9dQ15dlRamxxNmBJ/Z0+Qe44QJnvF33PzKcdnQUpQmRu1wzVF4IfIz7CRCP9oZPJ8ueHYk9X8/wvSVpGatPb6BPrjCvNV6akyfQRyraYLPn146QKxsNpJEOS9ukfOlGHaMzwkp70SK5I67EowGphTz/otfEKLkV/oEmB8QJHvO2VpT/2QjdP2jBY6121hS7vmJZ0wNBvAAxtUf2oplavyjoWz/t4inTEuUiFR2Sv5Sq6DZ5pnbAsusCG3ldWOsTvmdwfQ455uGXAGObXli0gtWvSLZwzKXYapNT4yJanteKJ0SuFbdLzt7i6NqLGHpZzGjXQuY3CjC8NOi7pbmkxjRyCQWkMtFgHnNExXnvdTJJQ4sFokGBnfw+65v+09LRo8iPY3He6w6hqDnKOF2kx6EjMWNq+2SJK834Ag6dxQWzSyPvtVU5EggdQjtnvNvg2lxHxO8oKAZhc/+FHov3h/qamvyfwEBtjcWk=
