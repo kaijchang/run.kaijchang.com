@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import ReactMapGL, { Source, Layer } from 'react-map-gl';
 
 import { graphql } from 'gatsby';
-import { useTable, useSortBy } from 'react-table';
+import { useTable, useFlexLayout, useSortBy } from 'react-table';
 import polyline from '@mapbox/polyline';
 
 import '../styles/layout.css';
@@ -56,8 +56,7 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
       mapboxApiAccessToken={ MAPBOX_TOKEN }
       mapStyle='mapbox://styles/kachang/ckcwjwqej0bjg1ir4v9y95fu4'
       // @ts-ignore
-      onViewPortChange={ setViewPort }
-      style={ { margin: 'auto' } }
+      onViewportChange={ setViewPort }
     >
       { /* @ts-ignore */ }
       <Source id='data' type='geojson' data={geoData}>
@@ -78,31 +77,62 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
   );
 };
 
+const RunSummary = ({ activityNodes }) => {
+  const [totalTime, totalDistance, numRuns] = useMemo(() => activityNodes.reduce((accs, { activity }: { activity: Run }) => {
+    return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, ++accs[2]];
+  }, [0, 0, 0]), []);
+
+  return (
+    <div className='flex flex-col font-mono'>
+      <h1 className='text-4xl'>2020 Running Overview</h1>
+      <p className='text-md mb-4'>
+        <a href='https://yihong.run/running'>Inspired by yihong.run</a>
+        {' '}&bull;{' '}
+        <a>Built using Mapbox and Strava</a>
+      </p>
+      <h2 className='text-2xl my-2'>
+        { (totalTime / 60 / 60).toFixed(2) } Hours
+      </h2>
+      <h2 className='text-2xl my-2'>
+        { formatDistance(metersToMiles(totalDistance)) }
+      </h2>
+      <h2 className='text-2xl my-2'>
+        { numRuns } Runs
+      </h2>
+    </div>
+  );
+};
+
 const RunTable = ({ activityNodes }) => {
   const columns = useMemo(() => ([
     {
-      Header: 'Name',
-      accessor: 'activity.name'
-    },
-    {
       Header: 'Date',
       Cell: ({ value }) => new Date(value).toLocaleDateString(),
-      accessor: 'activity.start_date_local'
+      accessor: 'activity.start_date_local',
+      width: 1
     },
     {
-      Header: 'Pace',
-      Cell: ({ value }) => formatPace(metersPerSecondToMinutesPerMile(value)),
-      accessor: 'activity.average_speed'
+      Header: 'Name',
+      accessor: 'activity.name',
+      width: 2
     },
     {
       Header: 'Time',
       Cell: ({ value }) => formatTime(value),
-      accessor: 'activity.elapsed_time'
+      accessor: 'activity.elapsed_time',
+      width: 1
     },
     {
       Header: 'Distance',
       Cell: ({ value }) => formatDistance(metersToMiles(value)),
-      accessor: 'activity.distance'
+      accessor: 'activity.distance',
+      width: 1
+    },
+    {
+      Header: 'Pace',
+      Cell: ({ value }) => formatPace(metersPerSecondToMinutesPerMile(value)),
+      accessor: 'activity.average_speed',
+      width: 1
     }
   ]), []);
 
@@ -117,7 +147,7 @@ const RunTable = ({ activityNodes }) => {
         }
       ]
     }
-  }, useSortBy);
+  }, useSortBy, useFlexLayout);
 
   const {
     getTableProps,
@@ -128,51 +158,58 @@ const RunTable = ({ activityNodes }) => {
   } = tableInstance;
 
   return (
-    <table { ...getTableProps() }>
-      <thead>
+    <div className='w-full text-left mx-auto' { ...getTableProps() }>
+      <div>
         {
           headerGroups.map(headerGroup => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
+            <div className='bg-Almond' {...headerGroup.getHeaderGroupProps()}>
               {
                 headerGroup.headers.map(column => (
-                  <th {...column.getHeaderProps()}>
+                  <div className='font-bold py-2 px-4' {...column.getHeaderProps()}>
                     { column.render('Header') }
-                  </th>
+                  </div>
                ))
               }
-           </tr>
+           </div>
          ))
         }
-      </thead>
-      <tbody {...getTableBodyProps()}>
+      </div>
+      <div {...getTableBodyProps()}>
         {
           rows.map(row => {
             prepareRow(row)
 
             return (
-              <tr {...row.getRowProps()}>
+              <div {...row.getRowProps()}>
                 {
                   row.cells.map(cell => {
                     return (
-                      <td {...cell.getCellProps()}>
+                      <div className='py-2 px-4' {...cell.getCellProps()}>
                         { cell.render('Cell') }
-                      </td>
+                      </div>
                     );
                   })
                 }
-              </tr>
+              </div>
             );
           })
         }
-      </tbody>
-    </table>
+      </div>
+    </div>
   );
 };
 
 export default ({ data }) => (
   <>
-    <RunMap activityNodes={ data.allStravaActivity.nodes }/>
-    <RunTable activityNodes={ data.allStravaActivity.nodes }/>
+    <div className='flex flex-col md:flex-row justify-around mx-6 my-6'>
+      <RunSummary activityNodes={ data.allStravaActivity.nodes }/>
+      <div className='md:mx-3'/>
+      <div className='flex flex-col'>
+        <RunMap activityNodes={ data.allStravaActivity.nodes }/>
+        <div className='my-3'/>
+        <RunTable activityNodes={ data.allStravaActivity.nodes }/>
+      </div>
+    </div>
   </>
 );
 
@@ -200,6 +237,7 @@ export const query = graphql`
     allStravaActivity(filter: {
       activity: {
         type: { eq: "Run" }
+        start_date_local: { gt: "2020-01-01" }
       }
     }) {
       nodes {
