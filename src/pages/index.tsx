@@ -106,7 +106,7 @@ const RunSummary = ({ activityNodes }) => {
   }, [0, 0, 0, 0]), []);
 
   return (
-    <div className='flex flex-col font-mono'>
+    <div className='flex flex-col items-start font-mono'>
       <h1 className='text-4xl'>2020 Running Log</h1>
       <p className='text-md'>
         <a href='https://yihong.run/running' className='link-underline'>Inspired by yihong.run</a>
@@ -223,7 +223,7 @@ const RunTable = ({ activityNodes }) => {
                   row.cells.map((cell: Cell) => {
                     return (
                       <div
-                        className={ `py-2 px-4 ${ cell.column.id != columns[columns.length - 1].accessor ? 'border-r-2 border-Black-Coffee' : ''  }` }
+                        className={ `py-2 px-4 ${ cell.column.id != columns[columns.length - 1].accessor ? 'border-r border-Black-Coffee' : ''  }` }
                         {...cell.getCellProps()}
                       >
                         { cell.render('Cell') }
