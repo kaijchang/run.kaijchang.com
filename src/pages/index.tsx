@@ -67,7 +67,7 @@ const RunMap: React.FC<RunVisProps> = ({ activityNodes }) => {
         type: 'Feature',
         geometry: polyline.toGeoJSON(activity.map.summary_polyline)
       }))
-  }), activityNodes);
+  }), [activityNodes]);
 
   const latestActivity = activityNodes[activityNodes.length - 1];
 
