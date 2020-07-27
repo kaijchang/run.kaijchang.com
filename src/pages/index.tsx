@@ -133,7 +133,7 @@ const RunSummary: React.FC<{ activityNodes: { activity: Run }[] }> = ({ activity
           <span className='mx-3'>
             Add Me on Strava
           </span>
-          <img src='/strava.webp' className='h-10 rounded-r-md bg-Strava px-2 py-2'/>
+          <img src='/strava.webp' className='h-10 w-10 rounded-r-md bg-Strava px-2 py-2'/>
         </button>
       </a>
       <h2 className='text-2xl my-2'>
