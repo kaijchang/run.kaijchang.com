@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import ReactMapGL, { Source, Layer } from 'react-map-gl';
 import { ViewportProvider, useDimensions } from 'react-viewport-utils';
@@ -25,19 +25,21 @@ type Run = {
   }
 };
 
+type ActivityNode = {
+  activity: Run;
+};
+
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2FjaGFuZyIsImEiOiJja2N3aTFqZjgwNGk5MnlteWdoZmVkdHloIn0.0m0MAYL8eeZNWyCZOvbP8g';
 const SAN_FRANCISCO_COORDS = {
   latitude: 37.7377,
   longitude: -122.4376,
 };
 
-type RunMapProps = {
-  activityNodes: {
-    activity: Run
-  }[];
+type RunVisProps = {
+  activityNodes: ActivityNode[];
 };
 
-const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
+const RunMap: React.FC<RunVisProps> = ({ activityNodes }) => {
   const [viewport, setViewport] = useState({
     width: '100%',
     height: 400,
@@ -65,7 +67,7 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
         type: 'Feature',
         geometry: polyline.toGeoJSON(activity.map.summary_polyline)
       }))
-  }), []);
+  }), activityNodes);
 
   return (
     <ReactMapGL
@@ -77,6 +79,9 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
     >
       { /* @ts-ignore */ }
       <Source id='data' type='geojson' data={geoData}>
+        <span className='m-2'>
+          { formatDate(new Date(activityNodes[activityNodes.length - 1].activity.start_date_local)) }
+        </span>
         <Layer
           id='runs'
           type='line'
@@ -94,16 +99,16 @@ const RunMap: React.FC<RunMapProps> = ({ activityNodes }) => {
   );
 };
 
-const RunMapWithViewport: React.FC<RunMapProps> = (props) => (
+const RunMapWithViewport: React.FC<RunVisProps> = (props) => (
   <ViewportProvider>
     <RunMap {...props}/>
   </ViewportProvider>
 );
 
-const RunSummary = ({ activityNodes }) => {
+const RunSummary: React.FC<{ activityNodes: { activity: Run }[] }> = ({ activityNodes }) => {
   const [totalTime, totalDistance, totalElevationGain, numRuns] = useMemo(() => activityNodes.reduce((accs, { activity }: { activity: Run }) => {
     return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
-  }, [0, 0, 0, 0]), []);
+  }, [0, 0, 0, 0]), [activityNodes]);
 
   return (
     <div className='flex flex-col items-start font-mono'>
@@ -137,7 +142,7 @@ const RunSummary = ({ activityNodes }) => {
   );
 };
 
-const RunTable = ({ activityNodes }) => {
+const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
   const columns = useMemo(() => ([
     {
       Header: 'Date',
@@ -240,27 +245,55 @@ const RunTable = ({ activityNodes }) => {
   );
 };
 
-export default ({ data }) => (
-  <>
+type PageData = {
+  allStravaActivity: {
+    nodes: ActivityNode[];
+  }
+};
+
+export default ({ data }: { data: PageData }) => {
+  const sortedActivityNodes = useMemo(
+    () => data.allStravaActivity.nodes.sort((a, b) => 
+      a.activity.start_date_local.localeCompare(b.activity.start_date_local)
+    ),
+    []
+  );
+  const [lastShownIndex, setLastShownIndex] = useState(0);
+  const visibleActivityNodes = sortedActivityNodes.slice(0, lastShownIndex + 1);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastShownIndex(curlastShownIndex => {
+        const nextIndex = curlastShownIndex + 1;
+        if (nextIndex == sortedActivityNodes.length) {
+          clearInterval(interval);
+          return curlastShownIndex;
+        }
+        return nextIndex;
+      });
+    }, 250);
+  }, []);
+  
+  return (
     <div className='flex flex-col md:flex-row justify-around my-6'>
       <div className='mx-6'>
-        <RunSummary activityNodes={ data.allStravaActivity.nodes }/>
+        <RunSummary activityNodes={ sortedActivityNodes }/>
       </div>
       <div className='md:mx-3'/>
       <div className='flex flex-col items-stretch md:items-start md:w-1/2 sm:mx-6'>
-        <RunMapWithViewport activityNodes={ data.allStravaActivity.nodes }/>
+        <RunMapWithViewport activityNodes={ visibleActivityNodes }/>
         <div className='my-3'/>
-        <RunTable activityNodes={ data.allStravaActivity.nodes }/>
+        <RunTable activityNodes={ sortedActivityNodes }/>
       </div>
     </div>
-  </>
-);
+  );
+};
 
 const metersPerSecondToMinutesPerMile = (mps: number) => 26.8224 / mps;
 const metersToMiles = (m: number) => m / 1609;
 const metersToFeet = (m : number) => m * 3.281;
 
-const formatDate = (d: Date) => `${d.getMonth() + 1}-${d.getDate()}`;
+const formatDate = (d: Date) => `${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear().toString().substr(2)}`;
 const formatPace = (minutesPerMile: number) => {
   const minutes = String(Math.floor(minutesPerMile));
   const seconds = String(Math.round(minutesPerMile % 1 * 60));
