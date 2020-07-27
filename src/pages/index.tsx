@@ -69,6 +69,8 @@ const RunMap: React.FC<RunVisProps> = ({ activityNodes }) => {
       }))
   }), activityNodes);
 
+  const latestActivity = activityNodes[activityNodes.length - 1];
+
   return (
     <ReactMapGL
       { ...viewport }
@@ -79,9 +81,17 @@ const RunMap: React.FC<RunVisProps> = ({ activityNodes }) => {
     >
       { /* @ts-ignore */ }
       <Source id='data' type='geojson' data={geoData}>
-        <span className='m-2'>
-          { formatDate(new Date(activityNodes[activityNodes.length - 1].activity.start_date_local)) }
-        </span>
+        <div className='mt-2 ml-4'>
+          <p>
+            { formatDate(new Date(latestActivity.activity.start_date_local)) }
+          </p>
+          <p>
+            { latestActivity.activity.name }
+          </p>
+          <p>
+            { formatDistance(metersToMiles(latestActivity.activity.distance)) }
+          </p>
+        </div>
         <Layer
           id='runs'
           type='line'
@@ -219,9 +229,11 @@ const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
             prepareRow(row);
             const run: Run = row.original.activity;
             return (
-              <div
+              <a
                 className='hover:bg-Champagne-Pink cursor-pointer'
-                onClick={ () => window.location.href = `https://strava.com/activities/${run.id}` }
+                href={ `https://strava.com/activities/${run.id}` }
+                target='_blank'
+                rel='noopener noreferrer'
                 {...row.getRowProps()}
               >
                 {
@@ -236,7 +248,7 @@ const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
                     );
                   })
                 }
-              </div>
+              </a>
             );
           })
         }
@@ -271,7 +283,7 @@ export default ({ data }: { data: PageData }) => {
         }
         return nextIndex;
       });
-    }, 250);
+    }, 500);
   }, []);
   
   return (
