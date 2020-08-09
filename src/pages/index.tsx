@@ -59,17 +59,40 @@ const RunMap: React.FC<RunVisProps> = ({ activityNodes }) => {
     }, 0);
   }
 
+  const [timestep, setTimestep] = useState(0);
+  const endTimestep = useMemo(() => Math.max(
+    ...activityNodes
+      .filter(({ activity }) => activity.map.summary_polyline != null)
+      .map(({ activity }, idx) => polyline.decode(activity.map.summary_polyline).length + idx)
+  ), []);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimestep(curTimestep => {
+        const nextTimestep = curTimestep + 5;
+        if (nextTimestep > endTimestep) {
+          clearInterval(interval);
+          return endTimestep;
+        }
+        return nextTimestep;
+      });
+    }, 100);
+  }, []);
+
   const geoData = useMemo(() => ({
     type: 'FeatureCollection',
     features: activityNodes
       .filter(({ activity }) => activity.map.summary_polyline != null)
-      .map(({ activity }) => ({
-        type: 'Feature',
-        geometry: polyline.toGeoJSON(activity.map.summary_polyline)
-      }))
-  }), [activityNodes]);
-
-  const latestActivity = activityNodes[activityNodes.length - 1];
+      .map(({ activity }, offset) => {
+        const geoJSON = {
+          type: 'Feature',
+          geometry: polyline.toGeoJSON(activity.map.summary_polyline)
+        };
+        if (timestep == endTimestep) return geoJSON;
+        if (offset > timestep) return {};
+        geoJSON.geometry.coordinates = geoJSON.geometry.coordinates.slice(0, timestep - offset);
+        return geoJSON
+      })
+  }), [activityNodes, timestep]);
 
   return (
     <ReactMapGL
@@ -81,17 +104,6 @@ const RunMap: React.FC<RunVisProps> = ({ activityNodes }) => {
     >
       { /* @ts-ignore */ }
       <Source id='data' type='geojson' data={geoData}>
-        <div className='mt-2 ml-4'>
-          <p>
-            { formatDate(new Date(latestActivity.activity.start_date_local)) }
-          </p>
-          <p>
-            { latestActivity.activity.name }
-          </p>
-          <p>
-            { formatDistance(metersToMiles(latestActivity.activity.distance)) }
-          </p>
-        </div>
         <Layer
           id='runs'
           type='line'
@@ -264,38 +276,18 @@ type PageData = {
 };
 
 export default ({ data }: { data: PageData }) => {
-  const sortedActivityNodes = useMemo(
-    () => data.allStravaActivity.nodes.sort((a, b) => 
-      a.activity.start_date_local.localeCompare(b.activity.start_date_local)
-    ),
-    []
-  );
-  const [lastShownIndex, setLastShownIndex] = useState(0);
-  const visibleActivityNodes = sortedActivityNodes.slice(0, lastShownIndex + 1);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLastShownIndex(curlastShownIndex => {
-        const nextIndex = curlastShownIndex + 1;
-        if (nextIndex == sortedActivityNodes.length) {
-          clearInterval(interval);
-          return curlastShownIndex;
-        }
-        return nextIndex;
-      });
-    }, 500);
-  }, []);
+  const activityNodes = data.allStravaActivity.nodes;
   
   return (
     <div className='flex flex-col md:flex-row justify-around my-6'>
       <div className='mx-6'>
-        <RunSummary activityNodes={ sortedActivityNodes }/>
+        <RunSummary activityNodes={ activityNodes }/>
       </div>
       <div className='md:mx-3'/>
       <div className='flex flex-col items-stretch md:items-start md:w-1/2 sm:mx-6'>
-        <RunMapWithViewport activityNodes={ visibleActivityNodes }/>
+        <RunMapWithViewport activityNodes={ activityNodes }/>
         <div className='my-3'/>
-        <RunTable activityNodes={ sortedActivityNodes }/>
+        <RunTable activityNodes={ activityNodes }/>
       </div>
     </div>
   );
