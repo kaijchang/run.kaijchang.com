@@ -140,14 +140,6 @@ const RunSummary: React.FC<{ activityNodes: { activity: Run }[] }> = ({ activity
         {' '}&bull;{' '}
         <a>Built using Mapbox and Strava</a>
       </p>
-      <a href='https://www.strava.com/athletes/kachang' className='my-4'>
-        <button className='flex flex-row items-center rounded-md border border-black hover:bg-Strava'>
-          <span className='mx-3'>
-            Add Me on Strava
-          </span>
-          <img src='/strava.webp' className='h-10 w-10 rounded-r-md bg-Strava px-2 py-2'/>
-        </button>
-      </a>
       <h2 className='text-2xl my-2'>
         { (totalTime / 60 / 60).toFixed(2) } Hours
       </h2>
