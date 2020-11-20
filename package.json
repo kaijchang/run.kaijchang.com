@@ -25,7 +25,6 @@
     "tailwindcss": "^1.4.6"
   },
   "devDependencies": {
-    "@types/": "mapbox/polyline",
     "@types/react": "^16.9.43",
     "@types/react-map-gl": "^5.2.5",
     "@types/react-table": "^7.0.19",

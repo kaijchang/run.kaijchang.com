@@ -128,30 +128,50 @@ const RunMapWithViewport: React.FC<RunVisProps> = (props) => (
 );
 
 const RunSummary: React.FC<{ activityNodes: { activity: Run }[] }> = ({ activityNodes }) => {
-  const [totalTime, totalDistance, totalElevationGain, numRuns] = useMemo(() => activityNodes.reduce((accs, { activity }: { activity: Run }) => {
-    return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
-  }, [0, 0, 0, 0]), [activityNodes]);
+  const activitiesByYear = useMemo(() => activityNodes.reduce((years, { activity }: { activity: Run }) => {
+    const year = activity.start_date_local.substr(0, 4);
+    if (!Object.keys(years).includes(year)) {
+      years[year] = [];
+    }
+    years[year].push(activity);
+    return years;
+  }, {}), [activityNodes]);
+  const statsByYear = useMemo(() => Object.fromEntries(Object.keys(activitiesByYear).map(year => [
+    year,
+    activitiesByYear[year].reduce((accs, activity) => {
+      return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
+    }, [0, 0, 0, 0])
+  ])), [activitiesByYear]);
+
+  console.log(Object.keys(activitiesByYear));
 
   return (
     <div className='flex flex-col items-start font-mono'>
-      <h1 className='text-4xl'>2020 Running Log</h1>
+      <h1 className='text-4xl'>{Math.min(...Object.keys(activitiesByYear).map(y => parseInt(y)))}-{Math.max(...Object.keys(activitiesByYear).map(y => parseInt(y)))} Running Log</h1>
       <p className='text-md'>
         <a href='https://yihong.run/running' className='link-underline'>Inspired by yihong.run</a>
         {' '}&bull;{' '}
         <a>Built using Mapbox and Strava</a>
       </p>
-      <h2 className='text-2xl my-2'>
-        { (totalTime / 60 / 60).toFixed(2) } Hours
-      </h2>
-      <h2 className='text-2xl my-2'>
-        { formatDistance(metersToMiles(totalDistance)) }
-      </h2>
-      <h2 className='text-2xl my-2'>
-        { metersToFeet(totalElevationGain).toLocaleString() } ft Elev. Gain
-      </h2>
-      <h2 className='text-2xl my-2'>
-        { numRuns } Runs
-      </h2>
+      {
+        Object.entries(statsByYear).reverse().map(([year, [totalTime, totalDistance, totalElevationGain, numRuns]]) => (
+          <div key={year}>
+            <h1 className='text-2xl text-Red-Salsa mt-2'>{year}</h1>
+            <h2 className='text-lg my-1'>
+              { (totalTime / 60 / 60).toFixed(2) } Hours
+            </h2>
+            <h2 className='text-lg my-1'>
+              { formatDistance(metersToMiles(totalDistance)) }
+            </h2>
+            <h2 className='text-lg my-1'>
+              { metersToFeet(totalElevationGain).toLocaleString() } ft Elev. Gain
+            </h2>
+            <h2 className='text-lg my-1'>
+              { numRuns } Runs
+            </h2>
+          </div>
+        ))
+      }
     </div>
   );
 };
@@ -311,7 +331,7 @@ export const query = graphql`
     allStravaActivity(filter: {
       activity: {
         type: { eq: "Run" }
-        start_date_local: { gt: "2020-01-01" }
+        start_date_local: { gt: "2019-01-01" }
       }
     }) {
       nodes {
