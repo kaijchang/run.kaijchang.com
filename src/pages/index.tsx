@@ -54,7 +54,7 @@ const RunMap: React.FC<RunVisProps> = ({ activityNodes }) => {
   });
   if (lastWidth !== dimensions.width) {
     setTimeout(() => {
-      setViewport({ width: '100%', ...viewport });
+      setViewport({ ...viewport, width: '100%' });
       setLastWidth(dimensions.width);
     }, 0);
   }
