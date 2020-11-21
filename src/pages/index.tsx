@@ -7,7 +7,7 @@ import { graphql } from 'gatsby';
 import { useTable, useFlexLayout, useSortBy } from 'react-table';
 import polyline from '@mapbox/polyline';
 
-import { Cell, Row } from 'react-table';
+import { Column } from 'react-table';
 
 import '../styles/layout.css';
 
@@ -135,15 +135,13 @@ const RunSummary: React.FC<{ activityNodes: { activity: Run }[] }> = ({ activity
     }
     years[year].push(activity);
     return years;
-  }, {}), [activityNodes]);
-  const statsByYear = useMemo(() => Object.fromEntries(Object.keys(activitiesByYear).map(year => [
+  }, {} as { [key: string]: Run[] }), [activityNodes]);
+  const statsByYear: { [key: string]: [number, number, number, number] } = useMemo(() => Object.fromEntries(Object.keys(activitiesByYear).map(year => [
     year,
     activitiesByYear[year].reduce((accs, activity) => {
       return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
     }, [0, 0, 0, 0])
   ])), [activitiesByYear]);
-
-  console.log(Object.keys(activitiesByYear));
 
   return (
     <div className='flex flex-col items-start font-mono'>
@@ -177,10 +175,10 @@ const RunSummary: React.FC<{ activityNodes: { activity: Run }[] }> = ({ activity
 };
 
 const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
-  const columns = useMemo(() => ([
+  const columns: any = useMemo(() => ([
     {
       Header: 'Date',
-      Cell: ({ value }) => formatDate(new Date(value)),
+      Cell: ({ value }: { value: string }) => formatDate(new Date(value)),
       accessor: 'activity.start_date_local',
       width: 1
     },
@@ -191,19 +189,19 @@ const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
     },
     {
       Header: 'Time',
-      Cell: ({ value }) => formatTime(value),
+      Cell: ({ value }: { value: number }) => formatTime(value),
       accessor: 'activity.elapsed_time',
       width: 1
     },
     {
       Header: 'Distance',
-      Cell: ({ value }) => formatDistance(metersToMiles(value)),
+      Cell: ({ value } : { value: number }) => formatDistance(metersToMiles(value)),
       accessor: 'activity.distance',
       width: 1
     },
     {
       Header: 'Pace (min/mi)',
-      Cell: ({ value }) => formatPace(metersPerSecondToMinutesPerMile(value)),
+      Cell: ({ value }: { value: number }) => formatPace(metersPerSecondToMinutesPerMile(value)),
       accessor: 'activity.average_speed',
       width: 1
     }
@@ -219,7 +217,7 @@ const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
           desc: true
         }
       ]
-    }
+    } as any
   }, useSortBy, useFlexLayout);
 
   const {
@@ -249,7 +247,7 @@ const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
       </div>
       <div {...getTableBodyProps()}>
         {
-          rows.map((row: Row) => {
+          rows.map((row) => {
             prepareRow(row);
             const run: Run = row.original.activity;
             return (
@@ -261,7 +259,7 @@ const RunTable: React.FC<RunVisProps> = ({ activityNodes }) => {
                 {...row.getRowProps()}
               >
                 {
-                  row.cells.map((cell: Cell) => {
+                  row.cells.map((cell) => {
                     return (
                       <div
                         className={ `py-2 px-4 ${ cell.column.id != columns[columns.length - 1].accessor ? 'border-r border-Black-Coffee' : ''  }` }
