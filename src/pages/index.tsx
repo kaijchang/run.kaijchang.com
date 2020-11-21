@@ -136,12 +136,15 @@ const RunSummary: React.FC<{ activityNodes: { activity: Run }[] }> = ({ activity
     years[year].push(activity);
     return years;
   }, {} as { [key: string]: Run[] }), [activityNodes]);
-  const statsByYear: { [key: string]: [number, number, number, number] } = useMemo(() => Object.fromEntries(Object.keys(activitiesByYear).map(year => [
-    year,
-    activitiesByYear[year].reduce((accs, activity) => {
-      return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
-    }, [0, 0, 0, 0])
-  ])), [activitiesByYear]);
+  const statsByYear = useMemo(() => {
+    let stats: { [key: string]: [number, number, number, number] } = {};
+    for (let year in activitiesByYear) {
+      stats[year] = activitiesByYear[year].reduce((accs, activity) => {
+        return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
+      }, [0, 0, 0, 0]);
+    }
+    return stats;
+  }, [activitiesByYear]);
 
   return (
     <div className='flex flex-col items-start font-mono'>
