@@ -37,7 +37,7 @@ type PageData = {
   }
 }
 
-const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
+const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
   const activityNodes = data.allStravaActivity.nodes
 
   const [viewport, setViewport] = useState<InteractiveMapProps>({
@@ -89,6 +89,23 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
         />
       </Source>
     </ReactMapGL>
+  )
+}
+
+const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
+  return (
+    <div className="fixed inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-2 py-2 px-4 md:px-12 rounded-md z-10 bg-gray-100">
+      {data.allStravaActivity.nodes.filter(({ activity }) => activity.map.summary_polyline != null).length} Runs
+    </div>
+  )
+}
+
+const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
+  return (
+    <>
+      <RunMap data={data} />
+      <RunOverlay data={data} />
+    </>
   )
 }
 
