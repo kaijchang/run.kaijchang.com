@@ -72,14 +72,14 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
         }))
       }}
       mapboxApiAccessToken={MAPBOX_TOKEN}
-      mapStyle="mapbox://styles/kachang/ckcwjwqej0bjg1ir4v9y95fu4"
+      mapStyle="mapbox://styles/kachang/ckcwk1fcn0blk1joa9aowzlur"
     >
       <Source id="run-data" type="geojson" data={geoData}>
         <Layer
           id="run-lines"
           type="line"
           paint={{
-            'line-color': '#c05e59',
+            'line-color': '#e0e722',
             'line-width': 2,
           }}
           layout={{
