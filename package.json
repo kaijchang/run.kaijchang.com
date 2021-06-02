@@ -17,7 +17,7 @@
     "gatsby-source-strava": "https://github.com/kajchang/gatsby-source-strava.git#build",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-helmet": "^5.2.1",
+    "react-helmet": "^6.1.0",
     "react-instagram-embed": "^1.5.0",
     "react-map-gl": "^5.2.7",
     "tailwindcss": "^1.4.6"
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/mapbox__polyline": "^1.0.2",
     "@types/react": "^16.9.43",
+    "@types/react-helmet": "^6.1.1",
     "@types/react-map-gl": "^5.2.5",
     "prettier": "^1.18.0"
   }

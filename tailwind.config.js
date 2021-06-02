@@ -3,12 +3,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "Black-Coffee":"#3a2e39","Dark-Slate-Gray":"#1e555c","Champagne-Pink":"#f4d8cd","Middle-Yellow-Red":"#edb183","Red-Salsa":"#f15152",
-        Strava: '#FC4C02'
+        'neon-yellow': '#e0e722'
       },
       fontFamily: {
-        sans: "'Lato', sans-serif"
-      }
+        sans: "'Lato', sans-serif",
+        dot: "'DotGothic16', sans-serif",
+      },
     },
   },
   variants: {},

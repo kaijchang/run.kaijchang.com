@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import ReactMapGL, { Source, Layer, InteractiveMapProps } from 'react-map-gl'
+import Helmet from 'react-helmet'
 
 import { graphql } from 'gatsby'
 import polyline from '@mapbox/polyline'
@@ -30,6 +31,11 @@ const SAN_FRANCISCO_COORDS = {
   latitude: 37.739,
   longitude: -122.444,
 }
+
+const metersPerSecondToMinutesPerMile = (mps: number) => 26.8224 / mps
+const metersToMiles = (m: number) => m / 1609
+const metersToFeet = (m : number) => m * 3.281
+const formatMilesDistance = (miles: number) => miles.toFixed(2) + ' mi'
 
 type PageData = {
   allStravaActivity: {
@@ -81,6 +87,7 @@ const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
           paint={{
             'line-color': '#e0e722',
             'line-width': 2,
+            'line-dasharray': [1, 2],
           }}
           layout={{
             'line-join': 'round',
@@ -93,9 +100,43 @@ const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
 }
 
 const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
+  const activityNodes = data.allStravaActivity.nodes
+  
+  const activitiesByYear = useMemo(() => activityNodes.reduce((years, { activity }: { activity: Run }) => {
+    const year = activity.start_date_local.substr(0, 4);
+    if (!Object.keys(years).includes(year)) {
+      years[year] = []
+    }
+    years[year].push(activity);
+    return years;
+  }, {} as { [key: string]: Run[] }), [activityNodes])
+  const statsByYear = useMemo(() => {
+    let stats: { [key: string]: [number, number, number, number] } = {};
+    for (let year in activitiesByYear) {
+      stats[year] = activitiesByYear[year].reduce((accs, activity) => {
+        return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
+      }, [0, 0, 0, 0]);
+    }
+    return stats;
+  }, [activitiesByYear])
+
   return (
-    <div className="fixed inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-2 py-2 px-4 md:px-12 rounded-md z-10 bg-gray-100">
-      {data.allStravaActivity.nodes.filter(({ activity }) => activity.map.summary_polyline != null).length} Runs
+    <div className="fixed inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-2 px-4 md:px-8 rounded-md z-10 bg-black text-white border border-gray-100">
+      {
+        Object.keys(statsByYear)
+          .sort((a, b) => +b - +a)
+          .map((year, idx) => (
+            <React.Fragment key={idx}>
+              <h1 className="text-4xl text-neon-yellow leading-tight">{year}</h1>
+              <div className="text-gray-300">
+                <p>{statsByYear[year][3]} runs</p>
+                <p>{(statsByYear[year][0] / 60 / 60).toFixed(2)} hrs</p>
+                <p>{formatMilesDistance(metersToMiles(statsByYear[year][1]))}</p>
+                <p>{Math.round(metersToFeet(statsByYear[year][2])).toLocaleString()} ft elevation</p>
+              </div>
+            </React.Fragment>
+          ))
+      }
     </div>
   )
 }
@@ -103,6 +144,9 @@ const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
 const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
   return (
     <>
+      <Helmet>
+        <title>Run</title>
+      </Helmet>
       <RunMap data={data} />
       <RunOverlay data={data} />
     </>
