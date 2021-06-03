@@ -121,12 +121,12 @@ const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
   }, [activitiesByYear])
 
   return (
-    <div className="fixed inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-2 px-4 md:px-8 rounded-md z-10 bg-black text-white border border-gray-100">
+    <div className="flex flex-row md:flex-col fixed overflow-x-scroll md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-2 px-4 md:px-8 rounded-md z-10 bg-black text-white border border-gray-100">
       {
         Object.keys(statsByYear)
           .sort((a, b) => +b - +a)
           .map((year, idx) => (
-            <React.Fragment key={idx}>
+            <div className="w-40 md:w-full min-w-40 md:min-w-0 mr-4 md:m-none" key={idx}>
               <h1 className="text-4xl text-neon-yellow leading-tight">{year}</h1>
               <div className="text-gray-300">
                 <p>{statsByYear[year][3]} runs</p>
@@ -134,7 +134,7 @@ const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
                 <p>{formatMilesDistance(metersToMiles(statsByYear[year][1]))}</p>
                 <p>{Math.round(metersToFeet(statsByYear[year][2])).toLocaleString()} ft elevation</p>
               </div>
-            </React.Fragment>
+            </div>
           ))
       }
     </div>
