@@ -126,7 +126,7 @@ const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
         Object.keys(statsByYear)
           .sort((a, b) => +b - +a)
           .map((year, idx) => (
-            <div className="w-40 md:w-full min-w-40 md:min-w-0 mr-4 md:m-none" key={idx}>
+            <div className="w-40 min-w-40 md:min-w-0 mr-4 md:m-none" key={idx}>
               <h1 className="text-4xl text-neon-yellow leading-tight">{year}</h1>
               <div className="text-gray-300">
                 <p>{statsByYear[year][3]} runs</p>
@@ -137,6 +137,8 @@ const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
             </div>
           ))
       }
+      <div className="flex-grow"/>
+      <a className="font-mono text-lg" href="https://kaijchang.com" target="_blank">kaijchang.com</a>
     </div>
   )
 }
