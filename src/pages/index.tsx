@@ -7,6 +7,7 @@ import { graphql } from 'gatsby'
 import polyline from '@mapbox/polyline'
 
 import '../styles/layout.css'
+import { useEffect } from 'react'
 
 type Run = {
   id: number
@@ -45,6 +46,24 @@ type PageData = {
 
 const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
   const activityNodes = data.allStravaActivity.nodes
+  const validNodes = useMemo(() => 
+    activityNodes.filter(({ activity }) => activity.map.summary_polyline != null),
+    [activityNodes]
+  )
+  const [offset, setOffset] = useState(1)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOffset(oldOffset => {
+        if (oldOffset >= validNodes.length - 1) {
+          clearInterval(interval)
+          return oldOffset
+        }
+        return oldOffset + 1
+      })
+    }, 50)
+    return () => clearInterval(interval)
+  }, [])
 
   const [viewport, setViewport] = useState<InteractiveMapProps>({
     width: '100vw',
@@ -54,8 +73,8 @@ const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
   })
   const geoData = useMemo(() => ({
     type: 'FeatureCollection' as 'FeatureCollection',
-    features: activityNodes
-      .filter(({ activity }) => activity.map.summary_polyline != null)
+    features: validNodes
+      .slice(0, offset)
       .map(({ activity }) => {
         const featureGeoJSON = {
           type: 'Feature' as 'Feature',
@@ -64,7 +83,7 @@ const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
         }
         return featureGeoJSON
       })
-  }), [activityNodes])
+  }), [activityNodes, offset])
 
   return (
     <ReactMapGL
