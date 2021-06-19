@@ -44,15 +44,22 @@ type PageData = {
   }
 }
 
-const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
-  const activityNodes = data.allStravaActivity.nodes
+const RunMap: React.FC<{
+  activityNodes: ActivityNode[]
+  visibleYears: { [year: number]: boolean }
+}> = ({ activityNodes, visibleYears }) => {
   const validNodes = useMemo(() => 
-    activityNodes.filter(({ activity }) => activity.map.summary_polyline != null),
-    [activityNodes]
+    activityNodes
+      .filter(({ activity }) =>
+        activity.map.summary_polyline != null &&
+        visibleYears[new Date(activity.start_date_local).getFullYear()]
+      ),
+    [activityNodes, visibleYears]
   )
   const [offset, setOffset] = useState(1)
 
   useEffect(() => {
+    setOffset(1)
     const interval = setInterval(() => {
       setOffset(oldOffset => {
         if (oldOffset >= validNodes.length - 1) {
@@ -63,7 +70,7 @@ const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
       })
     }, 50)
     return () => clearInterval(interval)
-  }, [])
+  }, [validNodes])
 
   const [viewport, setViewport] = useState<InteractiveMapProps>({
     width: '100vw',
@@ -71,19 +78,22 @@ const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
     zoom: 11,
     ...SAN_FRANCISCO_COORDS
   })
-  const geoData = useMemo(() => ({
-    type: 'FeatureCollection' as 'FeatureCollection',
-    features: validNodes
-      .slice(0, offset)
-      .map(({ activity }) => {
-        const featureGeoJSON = {
-          type: 'Feature' as 'Feature',
-          geometry: polyline.toGeoJSON(activity.map.summary_polyline),
-          properties: {}
-        }
-        return featureGeoJSON
-      })
-  }), [activityNodes, offset])
+  const geoData = useMemo(() =>
+    ({
+      type: 'FeatureCollection' as 'FeatureCollection',
+      features: validNodes
+        .slice(0, offset)
+        .map(({ activity }) => {
+          const featureGeoJSON = {
+            type: 'Feature' as 'Feature',
+            geometry: polyline.toGeoJSON(activity.map.summary_polyline),
+            properties: {}
+          }
+          return featureGeoJSON
+        })
+    }),
+    [validNodes, offset]
+  )
 
   return (
     <ReactMapGL
@@ -118,21 +128,15 @@ const RunMap: React.FC<{ data: PageData }> = ({ data }) => {
   )
 }
 
-const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
-  const activityNodes = data.allStravaActivity.nodes
-  
-  const activitiesByYear = useMemo(() => activityNodes.reduce((years, { activity }: { activity: Run }) => {
-    const year = activity.start_date_local.substr(0, 4);
-    if (!Object.keys(years).includes(year)) {
-      years[year] = []
-    }
-    years[year].push(activity);
-    return years;
-  }, {} as { [key: string]: Run[] }), [activityNodes])
+const RunOverlay: React.FC<{
+  activitiesByYear: { [year: number]: Run[] }
+  visibleYears: { [year: number]: boolean }
+  setIsYearVisible: (year: number, isVisible: boolean) => void
+}> = ({ activitiesByYear, visibleYears, setIsYearVisible }) => {
   const statsByYear = useMemo(() => {
-    let stats: { [key: string]: [number, number, number, number] } = {};
+    let stats: { [key: number]: [number, number, number, number] } = {};
     for (let year in activitiesByYear) {
-      stats[year] = activitiesByYear[year].reduce((accs, activity) => {
+      stats[year as unknown as number] = activitiesByYear[year].reduce((accs, activity) => {
         return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
       }, [0, 0, 0, 0]);
     }
@@ -140,13 +144,20 @@ const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
   }, [activitiesByYear])
 
   return (
-    <div className="flex flex-row md:flex-col fixed overflow-x-scroll md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-2 px-4 md:px-8 rounded-md z-10 bg-black text-white border border-gray-100">
+    <div className="flex flex-row md:flex-col fixed overflow-x-auto md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-4 px-4 md:px-8 rounded-md z-10 bg-black text-white border border-gray-100">
       {
-        Object.keys(statsByYear)
+        (Object.keys(statsByYear) as unknown as number[])
           .sort((a, b) => +b - +a)
           .map((year, idx) => (
             <div className="w-40 md:w-auto min-w-40 md:min-w-0 mr-4 md:mr-0" key={idx}>
-              <h1 className="text-4xl text-neon-yellow leading-tight">{year}</h1>
+              <button className={`cursor-pointer select-none ${visibleYears[year] ? '' : 'opacity-50'}`}>
+                <h1
+                  className="text-4xl text-neon-yellow leading-tight"
+                  onClick={() => setIsYearVisible(year, !visibleYears[year])}
+                >
+                  {year}
+                </h1>
+              </button>
               <div className="text-gray-300">
                 <p>{statsByYear[year][3]} runs</p>
                 <p>{(statsByYear[year][0] / 60 / 60).toFixed(2)} hrs</p>
@@ -157,19 +168,48 @@ const RunOverlay: React.FC<{ data: PageData }> = ({ data }) => {
           ))
       }
       <div className="flex-grow"/>
-      <a className="font-mono text-lg" href="https://kaijchang.com" target="_blank">kaijchang.com</a>
+      <a className="font-mono text-lg mb-1" href="https://kaijchang.com" target="_blank">kaijchang.com</a>
     </div>
   )
 }
 
 const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
+  const activityNodes = data.allStravaActivity.nodes
+
+  const activitiesByYear = useMemo(() => activityNodes.reduce((years, { activity }: { activity: Run }) => {
+    const year = activity.start_date_local.substr(0, 4);
+    if (!Object.keys(years).includes(year)) {
+      years[year] = []
+    }
+    years[year].push(activity);
+    return years;
+  }, {} as { [key: string]: Run[] }), [activityNodes])
+
+  const [visibleYears, setVisibleYears] = useState(
+    Object.fromEntries(
+      Object.keys(activitiesByYear).map(year => [year, true])
+    )
+  )
+
   return (
     <>
       <Helmet>
         <title>Run</title>
       </Helmet>
-      <RunMap data={data} />
-      <RunOverlay data={data} />
+      <RunMap
+        activityNodes={activityNodes}
+        visibleYears={visibleYears}
+      />
+      <RunOverlay
+        activitiesByYear={activitiesByYear}
+        visibleYears={visibleYears}
+        setIsYearVisible={(year, isVisible) =>
+          setVisibleYears(oldVisibleYears => ({
+            ...oldVisibleYears,
+            [year]: isVisible,
+          }))
+        }
+      />
     </>
   )
 }
