@@ -1,13 +1,13 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { graphql } from 'gatsby'
 
 import ReactMapGL, { Source, Layer, InteractiveMapProps } from 'react-map-gl'
 import Helmet from 'react-helmet'
 
-import { graphql } from 'gatsby'
 import polyline from '@mapbox/polyline'
+import fromEntries from 'fromentries'
 
 import '../styles/layout.css'
-import { useEffect } from 'react'
 
 type Run = {
   id: number
@@ -186,7 +186,7 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
   }, {} as { [key: string]: Run[] }), [activityNodes])
 
   const [visibleYears, setVisibleYears] = useState(
-    Object.fromEntries(
+    fromEntries(
       Object.keys(activitiesByYear).map(year => [year, true])
     )
   )
