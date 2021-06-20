@@ -168,7 +168,7 @@ const RunOverlay: React.FC<{
           ))
       }
       <div className="flex-grow"/>
-      <a className="font-mono text-lg mb-1" href="https://kaijchang.com" target="_blank">kaijchang.com</a>
+      <a className="font-mono text-lg mb-1 mr-2 md:mr-0" href="https://kaijchang.com" target="_blank">kaijchang.com</a>
     </div>
   )
 }
