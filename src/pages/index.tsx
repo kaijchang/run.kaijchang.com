@@ -174,7 +174,14 @@ const RunOverlay: React.FC<{
 }
 
 const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
-  const activityNodes = data.allStravaActivity.nodes
+  const activityNodes = useMemo(() =>
+    data.allStravaActivity.nodes
+      .sort((a, b) =>
+        new Date(a.activity.start_date_local).valueOf() -
+        new Date(b.activity.start_date_local).valueOf()
+      ),
+    [data.allStravaActivity.nodes]
+  )
 
   const activitiesByYear = useMemo(() => activityNodes.reduce((years, { activity }: { activity: Run }) => {
     const year = activity.start_date_local.substr(0, 4);
