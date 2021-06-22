@@ -1,12 +1,27 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, {
+  LegacyRef,
+  RefObject,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from 'react'
 import { graphql } from 'gatsby'
 
-import ReactMapGL, { Source, Layer, InteractiveMapProps } from 'react-map-gl'
+import ReactMapGL, {
+  Popup,
+  Source,
+  Layer,
+  InteractiveMapProps,
+  InteractiveMap,
+} from 'react-map-gl'
 import Helmet from 'react-helmet'
 
 import polyline from '@mapbox/polyline'
 import fromEntries from 'fromentries'
 import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+dayjs.extend(duration)
 
 import '../styles/layout.css'
 
@@ -50,6 +65,13 @@ const RunMap: React.FC<{
   activityNodes: ActivityNode[]
   visibleYears: { [year: number]: boolean }
 }> = ({ activityNodes, visibleYears }) => {
+  const mapRef = useRef() as LegacyRef<InteractiveMap>
+  const [hoveredFeature, setHoveredFeature] = useState<GeoJSON.Feature<
+    GeoJSON.Point,
+    Run
+  > | null>(null)
+  const [hoveredCoords, setHoveredCoords] = useState<[number, number] | null>()
+
   const validNodes = useMemo(
     () =>
       activityNodes.filter(
@@ -88,7 +110,7 @@ const RunMap: React.FC<{
         const featureGeoJSON = {
           type: 'Feature' as 'Feature',
           geometry: polyline.toGeoJSON(activity.map.summary_polyline),
-          properties: {},
+          properties: activity,
         }
         return featureGeoJSON
       }),
@@ -99,12 +121,15 @@ const RunMap: React.FC<{
   return (
     <>
       <span className="absolute top-0 left-0 m-2 text-neon-yellow z-10">
-        {dayjs(validNodes[offset - 1].activity.start_date_local).format(
-          'MM/DD/YYYY'
-        )}
+        {offset < validNodes.length
+          ? dayjs(validNodes[offset - 1].activity.start_date_local).format(
+              'MM/DD/YYYY'
+            )
+          : null}
       </span>
       <ReactMapGL
         {...viewport}
+        ref={mapRef}
         onViewportChange={newViewport => {
           setViewport(oldViewport => ({
             ...oldViewport,
@@ -112,6 +137,20 @@ const RunMap: React.FC<{
             width: '100vw',
             height: '100vh',
           }))
+        }}
+        onHover={e => {
+          const feature = (mapRef as RefObject<
+            InteractiveMap
+          >).current?.queryRenderedFeatures(e.point, {
+            layers: ['run-lines'],
+          })[0]
+          if (feature) {
+            setHoveredFeature(feature as GeoJSON.Feature<GeoJSON.Point, Run>)
+            setHoveredCoords(e.lngLat)
+          } else {
+            setHoveredFeature(null)
+            setHoveredCoords(null)
+          }
         }}
         mapboxApiAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/kachang/ckcwk1fcn0blk1joa9aowzlur"
@@ -131,6 +170,31 @@ const RunMap: React.FC<{
             }}
           />
         </Source>
+        {hoveredFeature && hoveredCoords && (
+          <Popup
+            longitude={hoveredCoords[0]}
+            latitude={hoveredCoords[1]}
+            closeButton={false}
+          >
+            <div className="text-black">
+              <p className="text-lg">{hoveredFeature.properties.name}</p>
+              <p className="text-sm">
+                {dayjs(hoveredFeature.properties.start_date_local).format(
+                  'MM/DD/YYYY'
+                )}
+              </p>
+              <p>
+                {formatMilesDistance(
+                  metersToMiles(hoveredFeature.properties.distance)
+                )}{' '}
+                &middot;{' '}
+                {dayjs
+                  .duration(hoveredFeature.properties.elapsed_time, 'seconds')
+                  .format('HH:mm:ss')}
+              </p>
+            </div>
+          </Popup>
+        )}
       </ReactMapGL>
     </>
   )
