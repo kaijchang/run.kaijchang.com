@@ -212,11 +212,11 @@ const RunMap: React.FC<{
         return
       }
       setManualFocusedFeature(feature)
-      if (popup && validNodes.find(node => node.activity.id === feature.id)) {
+      if (popup) {
         setHoveredCoords(lngLat)
       }
     },
-    [validNodes]
+    []
   )
   const unfocusFeature = useCallback(() => {
     if (!mapRef.current?.getMap().isStyleLoaded()) {
