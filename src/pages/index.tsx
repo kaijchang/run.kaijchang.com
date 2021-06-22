@@ -14,6 +14,7 @@ import ReactMapGL, {
   Layer,
   InteractiveMapProps,
   InteractiveMap,
+  LayerProps,
 } from 'react-map-gl'
 import Helmet from 'react-helmet'
 
@@ -62,6 +63,14 @@ const activityToFeature = (activity: Run) =>
     properties: activity,
   } as GeoJSON.Feature<GeoJSON.LineString, Run>)
 
+const LAYER_STYLE = {
+  type: 'line',
+  layout: {
+    'line-join': 'round',
+    'line-cap': 'round',
+  },
+} as LayerProps
+
 type PageData = {
   allStravaActivity: {
     nodes: ActivityNode[]
@@ -71,7 +80,13 @@ type PageData = {
 const RunTimeline: React.FC<{
   activityNodes: ActivityNode[]
   focusedFeature: GeoJSON.Feature<GeoJSON.LineString, Run> | null
-}> = ({ activityNodes, focusedFeature }) => {
+  focusFeature: (
+    popup: boolean,
+    feature: GeoJSON.Feature<GeoJSON.LineString, Run>,
+    longLat?: [number, number]
+  ) => void
+  unfocusFeature: () => void
+}> = ({ activityNodes, focusedFeature, focusFeature, unfocusFeature }) => {
   const width = 300
   const height = 25
   const start = activityNodes[0].activity.start_date_local
@@ -97,7 +112,27 @@ const RunTimeline: React.FC<{
               dayjs
                 .duration(dayjs(activity.start_date_local).diff(start))
                 .asDays()
-            return <line key={idx} x1={x} x2={x} y1={0} y2={height} />
+            return (
+              <line
+                key={idx}
+                onMouseEnter={() => {
+                  const coords = polyline.decode(activity.map.summary_polyline)
+                  unfocusFeature()
+                  focusFeature(
+                    true,
+                    activityToFeature(activity),
+                    coords[Math.round(coords.length / 2)].reverse() as [
+                      number,
+                      number
+                    ]
+                  )
+                }}
+                x1={x}
+                x2={x}
+                y1={0}
+                y2={height}
+              />
+            )
           })}
           {focusedFeature && timeSinceFocusedFeature && (
             <line
@@ -120,7 +155,6 @@ const RunMap: React.FC<{
   visibleYears: { [year: number]: boolean }
 }> = ({ activityNodes, visibleYears }) => {
   const mapRef = useRef<InteractiveMap>()
-  const lastFocusedFeature = useRef<GeoJSON.Feature>()
   const [
     manualFocusedFeature,
     setManualFocusedFeature,
@@ -131,7 +165,6 @@ const RunMap: React.FC<{
     () =>
       activityNodes.filter(
         ({ activity }) =>
-          activity.map.summary_polyline != null &&
           visibleYears[new Date(activity.start_date_local).getFullYear()]
       ),
     [activityNodes, visibleYears]
@@ -163,9 +196,10 @@ const RunMap: React.FC<{
       type: 'FeatureCollection' as 'FeatureCollection',
       features: validNodes
         .slice(0, offset)
+        .filter(node => node.activity.id !== manualFocusedFeature?.id)
         .map(({ activity }) => activityToFeature(activity)),
     }),
-    [validNodes, offset]
+    [validNodes, offset, manualFocusedFeature]
   )
 
   const focusFeature = useCallback(
@@ -174,14 +208,20 @@ const RunMap: React.FC<{
       feature: GeoJSON.Feature<GeoJSON.LineString, Run>,
       lngLat?: [number, number]
     ) => {
+      if (!mapRef.current?.getMap().isStyleLoaded()) {
+        return
+      }
       setManualFocusedFeature(feature)
-      if (popup) {
+      if (popup && validNodes.find(node => node.activity.id === feature.id)) {
         setHoveredCoords(lngLat)
       }
     },
     []
   )
   const unfocusFeature = useCallback(() => {
+    if (!mapRef.current?.getMap().isStyleLoaded()) {
+      return
+    }
     if (manualFocusedFeature) {
       setManualFocusedFeature(null)
       setHoveredCoords(null)
@@ -194,45 +234,14 @@ const RunMap: React.FC<{
       ? activityToFeature(validNodes[offset - 1].activity)
       : null)
 
-  useEffect(() => {
-    if (!mapRef.current?.getMap().isStyleLoaded()) {
-      return
-    }
-    if (lastFocusedFeature.current) {
-      mapRef.current?.getMap().setFeatureState(
-        {
-          source: 'run-data',
-          id: lastFocusedFeature.current.id,
-        },
-        {
-          hover: false,
-        }
-      )
-    }
-    if (
-      focusedFeature &&
-      manualFocusedFeature &&
-      manualFocusedFeature.id === focusedFeature.id
-    ) {
-      lastFocusedFeature.current = focusedFeature
-      mapRef.current?.getMap().setFeatureState(
-        {
-          source: 'run-data',
-          id: focusedFeature.id,
-        },
-        {
-          hover: true,
-        }
-      )
-    }
-  }, [focusedFeature])
-
   return (
     <>
       <span className="absolute top-0 left-0 m-2 z-10">
         <RunTimeline
           activityNodes={activityNodes}
           focusedFeature={focusedFeature}
+          focusFeature={focusFeature}
+          unfocusFeature={unfocusFeature}
         />
       </span>
       <ReactMapGL
@@ -247,9 +256,6 @@ const RunMap: React.FC<{
           }))
         }}
         onHover={e => {
-          if (!mapRef.current?.getMap().isStyleLoaded()) {
-            return
-          }
           const feature = mapRef.current?.queryRenderedFeatures(e.point, {
             layers: ['run-lines'],
           })[0]
@@ -268,23 +274,29 @@ const RunMap: React.FC<{
         <Source id="run-data" type="geojson" data={geoData}>
           <Layer
             id="run-lines"
-            type="line"
+            {...LAYER_STYLE}
             paint={{
-              'line-color': [
-                'case',
-                ['boolean', ['feature-state', 'hover'], false],
-                'red',
-                '#e0e722',
-              ],
+              'line-color': '#e0e722',
               'line-width': 2,
               'line-dasharray': [1, 2],
             }}
-            layout={{
-              'line-join': 'round',
-              'line-cap': 'round',
-            }}
           />
         </Source>
+        {focusedFeature &&
+          manualFocusedFeature &&
+          manualFocusedFeature.id === focusedFeature.id && (
+            <Source id="focused-feature" type="geojson" data={focusedFeature}>
+              <Layer
+                id="focused-feature-line"
+                {...LAYER_STYLE}
+                paint={{
+                  'line-color': 'red',
+                  'line-width': 2,
+                  'line-dasharray': [1, 2],
+                }}
+              />
+            </Source>
+          )}
         {manualFocusedFeature && hoveredCoords && (
           <Popup
             longitude={hoveredCoords[0]}
@@ -425,7 +437,12 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
       <Helmet>
         <title>Run</title>
       </Helmet>
-      <RunMap activityNodes={activityNodes} visibleYears={visibleYears} />
+      <RunMap
+        activityNodes={activityNodes.filter(
+          ({ activity }) => activity.map.summary_polyline !== null
+        )}
+        visibleYears={visibleYears}
+      />
       <RunOverlay
         activitiesByYear={activitiesByYear}
         visibleYears={visibleYears}
