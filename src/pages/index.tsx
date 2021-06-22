@@ -1,6 +1,6 @@
 import React, {
   LegacyRef,
-  RefObject,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -67,7 +67,7 @@ const RunMap: React.FC<{
 }> = ({ activityNodes, visibleYears }) => {
   const mapRef = useRef<InteractiveMap>()
   const [hoveredFeature, setHoveredFeature] = useState<GeoJSON.Feature<
-    GeoJSON.Point,
+    GeoJSON.MultiPoint,
     Run
   > | null>(null)
   const [hoveredCoords, setHoveredCoords] = useState<[number, number] | null>()
@@ -119,6 +119,41 @@ const RunMap: React.FC<{
     [validNodes, offset]
   )
 
+  const focusFeature = useCallback(
+    (
+      feature: GeoJSON.Feature<GeoJSON.MultiPoint, Run>,
+      lngLat: [number, number]
+    ) => {
+      mapRef.current?.getMap().setFeatureState(
+        {
+          source: 'run-data',
+          id: feature.id,
+        },
+        {
+          hover: true,
+        }
+      )
+      setHoveredFeature(feature)
+      setHoveredCoords(lngLat)
+    },
+    []
+  )
+  const unfocusFeature = useCallback(() => {
+    if (hoveredFeature) {
+      mapRef.current?.getMap().setFeatureState(
+        {
+          source: 'run-data',
+          id: hoveredFeature?.id,
+        },
+        {
+          hover: false,
+        }
+      )
+      setHoveredFeature(null)
+      setHoveredCoords(null)
+    }
+  }, [hoveredFeature])
+
   return (
     <>
       <span className="absolute top-0 left-0 m-2 text-neon-yellow z-10">
@@ -146,41 +181,12 @@ const RunMap: React.FC<{
           const feature = mapRef.current?.queryRenderedFeatures(e.point, {
             layers: ['run-lines'],
           })[0]
-          if (hoveredFeature) {
-            mapRef.current?.getMap().setFeatureState(
-              {
-                source: 'run-data',
-                id: hoveredFeature?.id,
-              },
-              {
-                hover: false,
-              }
-            )
-          }
+          unfocusFeature()
           if (feature) {
-            setHoveredFeature(feature as GeoJSON.Feature<GeoJSON.Point, Run>)
-            setHoveredCoords(e.lngLat)
-            mapRef.current?.getMap().setFeatureState(
-              {
-                source: 'run-data',
-                id: feature.id,
-              },
-              {
-                hover: true,
-              }
+            focusFeature(
+              feature as GeoJSON.Feature<GeoJSON.MultiPoint, Run>,
+              e.lngLat
             )
-          } else {
-            mapRef.current?.getMap().setFeatureState(
-              {
-                source: 'run-data',
-                id: hoveredFeature?.id,
-              },
-              {
-                hover: false,
-              }
-            )
-            setHoveredFeature(null)
-            setHoveredCoords(null)
           }
         }}
         mapboxApiAccessToken={MAPBOX_TOKEN}
