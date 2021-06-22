@@ -330,7 +330,12 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
   )
 
   const [visibleYears, setVisibleYears] = useState(
-    fromEntries(Object.keys(activitiesByYear).map(year => [year, true]))
+    fromEntries(
+      Object.keys(activitiesByYear).map(year => [
+        year,
+        parseInt(year) === new Date().getFullYear(),
+      ])
+    )
   )
 
   return (
