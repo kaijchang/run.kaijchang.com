@@ -140,6 +140,9 @@ const RunMap: React.FC<{
           }))
         }}
         onHover={e => {
+          if (!mapRef.current?.getMap().isStyleLoaded) {
+            return
+          }
           const feature = mapRef.current?.queryRenderedFeatures(e.point, {
             layers: ['run-lines'],
           })[0]
