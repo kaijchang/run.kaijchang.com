@@ -65,7 +65,7 @@ const RunMap: React.FC<{
   activityNodes: ActivityNode[]
   visibleYears: { [year: number]: boolean }
 }> = ({ activityNodes, visibleYears }) => {
-  const mapRef = useRef() as LegacyRef<InteractiveMap>
+  const mapRef = useRef<InteractiveMap>()
   const [hoveredFeature, setHoveredFeature] = useState<GeoJSON.Feature<
     GeoJSON.Point,
     Run
@@ -108,10 +108,11 @@ const RunMap: React.FC<{
       type: 'FeatureCollection' as 'FeatureCollection',
       features: validNodes.slice(0, offset).map(({ activity }) => {
         const featureGeoJSON = {
-          type: 'Feature' as 'Feature',
+          id: activity.id,
+          type: 'Feature',
           geometry: polyline.toGeoJSON(activity.map.summary_polyline),
           properties: activity,
-        }
+        } as GeoJSON.Feature
         return featureGeoJSON
       }),
     }),
@@ -129,7 +130,7 @@ const RunMap: React.FC<{
       </span>
       <ReactMapGL
         {...viewport}
-        ref={mapRef}
+        ref={mapRef as LegacyRef<InteractiveMap>}
         onViewportChange={newViewport => {
           setViewport(oldViewport => ({
             ...oldViewport,
@@ -139,15 +140,42 @@ const RunMap: React.FC<{
           }))
         }}
         onHover={e => {
-          const feature = (mapRef as RefObject<
-            InteractiveMap
-          >).current?.queryRenderedFeatures(e.point, {
+          const feature = mapRef.current?.queryRenderedFeatures(e.point, {
             layers: ['run-lines'],
           })[0]
+          if (hoveredFeature) {
+            mapRef.current?.getMap().setFeatureState(
+              {
+                source: 'run-data',
+                id: hoveredFeature?.id,
+              },
+              {
+                hover: false,
+              }
+            )
+          }
           if (feature) {
             setHoveredFeature(feature as GeoJSON.Feature<GeoJSON.Point, Run>)
             setHoveredCoords(e.lngLat)
+            mapRef.current?.getMap().setFeatureState(
+              {
+                source: 'run-data',
+                id: feature.id,
+              },
+              {
+                hover: true,
+              }
+            )
           } else {
+            mapRef.current?.getMap().setFeatureState(
+              {
+                source: 'run-data',
+                id: hoveredFeature?.id,
+              },
+              {
+                hover: false,
+              }
+            )
             setHoveredFeature(null)
             setHoveredCoords(null)
           }
@@ -160,7 +188,12 @@ const RunMap: React.FC<{
             id="run-lines"
             type="line"
             paint={{
-              'line-color': '#e0e722',
+              'line-color': [
+                'case',
+                ['boolean', ['feature-state', 'hover'], false],
+                'red',
+                '#e0e722',
+              ],
               'line-width': 2,
               'line-dasharray': [1, 2],
             }}
