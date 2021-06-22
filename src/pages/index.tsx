@@ -6,6 +6,7 @@ import Helmet from 'react-helmet'
 
 import polyline from '@mapbox/polyline'
 import fromEntries from 'fromentries'
+import dayjs from 'dayjs'
 
 import '../styles/layout.css'
 
@@ -96,35 +97,40 @@ const RunMap: React.FC<{
   )
 
   return (
-    <ReactMapGL
-      {...viewport}
-      onViewportChange={newViewport => {
-        setViewport(oldViewport => ({
-          ...oldViewport,
-          ...newViewport,
-          width: '100vw',
-          height: '100vh',
-        }))
-      }}
-      mapboxApiAccessToken={MAPBOX_TOKEN}
-      mapStyle="mapbox://styles/kachang/ckcwk1fcn0blk1joa9aowzlur"
-    >
-      <Source id="run-data" type="geojson" data={geoData}>
-        <Layer
-          id="run-lines"
-          type="line"
-          paint={{
-            'line-color': '#e0e722',
-            'line-width': 2,
-            'line-dasharray': [1, 2],
-          }}
-          layout={{
-            'line-join': 'round',
-            'line-cap': 'round',
-          }}
-        />
-      </Source>
-    </ReactMapGL>
+    <>
+      <span className="absolute top-0 left-0 m-2 text-neon-yellow z-10">
+        {dayjs(validNodes[offset - 1].activity.start_date_local).format('MM/DD/YYYY')}
+      </span>
+      <ReactMapGL
+        {...viewport}
+        onViewportChange={newViewport => {
+          setViewport(oldViewport => ({
+            ...oldViewport,
+            ...newViewport,
+            width: '100vw',
+            height: '100vh',
+          }))
+        }}
+        mapboxApiAccessToken={MAPBOX_TOKEN}
+        mapStyle="mapbox://styles/kachang/ckcwk1fcn0blk1joa9aowzlur"
+      >
+        <Source id="run-data" type="geojson" data={geoData}>
+          <Layer
+            id="run-lines"
+            type="line"
+            paint={{
+              'line-color': '#e0e722',
+              'line-width': 2,
+              'line-dasharray': [1, 2],
+            }}
+            layout={{
+              'line-join': 'round',
+              'line-cap': 'round',
+            }}
+          />
+        </Source>
+      </ReactMapGL>
+    </>
   )
 }
 
