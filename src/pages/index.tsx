@@ -216,7 +216,7 @@ const RunMap: React.FC<{
         setHoveredCoords(lngLat)
       }
     },
-    []
+    [validNodes]
   )
   const unfocusFeature = useCallback(() => {
     if (!mapRef.current?.getMap().isStyleLoaded()) {
