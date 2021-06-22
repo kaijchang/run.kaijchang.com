@@ -87,7 +87,7 @@ const RunMap: React.FC<{
     setOffset(1)
     const interval = setInterval(() => {
       setOffset(oldOffset => {
-        if (oldOffset >= validNodes.length - 1) {
+        if (oldOffset >= validNodes.length) {
           clearInterval(interval)
           return oldOffset
         }
@@ -157,7 +157,7 @@ const RunMap: React.FC<{
   return (
     <>
       <span className="absolute top-0 left-0 m-2 text-neon-yellow z-10">
-        {offset < validNodes.length
+        {offset <= validNodes.length
           ? dayjs(validNodes[offset - 1].activity.start_date_local).format(
               'MM/DD/YYYY'
             )
