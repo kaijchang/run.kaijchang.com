@@ -54,6 +54,13 @@ const metersPerSecondToMinutesPerMile = (mps: number) => 26.8224 / mps
 const metersToMiles = (m: number) => m / 1609
 const metersToFeet = (m: number) => m * 3.281
 const formatMilesDistance = (miles: number) => miles.toFixed(2) + ' mi'
+const activityToFeature = (activity: Run) =>
+  ({
+    id: activity.id,
+    type: 'Feature',
+    geometry: polyline.toGeoJSON(activity.map.summary_polyline),
+    properties: activity,
+  } as GeoJSON.Feature<GeoJSON.LineString, Run>)
 
 type PageData = {
   allStravaActivity: {
@@ -61,15 +68,63 @@ type PageData = {
   }
 }
 
+const RunTimeline: React.FC<{
+  activityNodes: ActivityNode[]
+  focusedFeature: GeoJSON.Feature<GeoJSON.LineString, Run> | null
+}> = ({ activityNodes, focusedFeature }) => {
+  const width = 300
+  const height = 25
+  const start = activityNodes[0].activity.start_date_local
+  const timespan = dayjs.duration(
+    dayjs(
+      activityNodes[activityNodes.length - 1].activity.start_date_local
+    ).diff(start)
+  )
+  const step = width / timespan.asDays()
+  const timeSinceFocusedFeature =
+    focusedFeature &&
+    dayjs
+      .duration(dayjs(focusedFeature.properties.start_date_local).diff(start))
+      .asDays()
+
+  return (
+    <div className="rounded-sm overflow-hidden">
+      <svg width={width} height={height} fill="black">
+        <g strokeWidth={step} fill="#e0e722" stroke="#e0e722">
+          {activityNodes.map(({ activity }, idx) => {
+            const x =
+              step *
+              dayjs
+                .duration(dayjs(activity.start_date_local).diff(start))
+                .asDays()
+            return <line key={idx} x1={x} x2={x} y1={0} y2={height} />
+          })}
+          {focusedFeature && timeSinceFocusedFeature && (
+            <line
+              stroke="red"
+              strokeWidth={1}
+              x1={step * timeSinceFocusedFeature}
+              x2={step * timeSinceFocusedFeature}
+              y1={0}
+              y2={height}
+            />
+          )}
+        </g>
+      </svg>
+    </div>
+  )
+}
+
 const RunMap: React.FC<{
   activityNodes: ActivityNode[]
   visibleYears: { [year: number]: boolean }
 }> = ({ activityNodes, visibleYears }) => {
   const mapRef = useRef<InteractiveMap>()
-  const [hoveredFeature, setHoveredFeature] = useState<GeoJSON.Feature<
-    GeoJSON.MultiPoint,
-    Run
-  > | null>(null)
+  const lastFocusedFeature = useRef<GeoJSON.Feature>()
+  const [
+    manualFocusedFeature,
+    setManualFocusedFeature,
+  ] = useState<GeoJSON.Feature<GeoJSON.LineString, Run> | null>(null)
   const [hoveredCoords, setHoveredCoords] = useState<[number, number] | null>()
 
   const validNodes = useMemo(
@@ -106,62 +161,79 @@ const RunMap: React.FC<{
   const geoData = useMemo(
     () => ({
       type: 'FeatureCollection' as 'FeatureCollection',
-      features: validNodes.slice(0, offset).map(({ activity }) => {
-        const featureGeoJSON = {
-          id: activity.id,
-          type: 'Feature',
-          geometry: polyline.toGeoJSON(activity.map.summary_polyline),
-          properties: activity,
-        } as GeoJSON.Feature
-        return featureGeoJSON
-      }),
+      features: validNodes
+        .slice(0, offset)
+        .map(({ activity }) => activityToFeature(activity)),
     }),
     [validNodes, offset]
   )
 
   const focusFeature = useCallback(
     (
-      feature: GeoJSON.Feature<GeoJSON.MultiPoint, Run>,
-      lngLat: [number, number]
+      popup: boolean,
+      feature: GeoJSON.Feature<GeoJSON.LineString, Run>,
+      lngLat?: [number, number]
     ) => {
-      mapRef.current?.getMap().setFeatureState(
-        {
-          source: 'run-data',
-          id: feature.id,
-        },
-        {
-          hover: true,
-        }
-      )
-      setHoveredFeature(feature)
-      setHoveredCoords(lngLat)
+      setManualFocusedFeature(feature)
+      if (popup) {
+        setHoveredCoords(lngLat)
+      }
     },
     []
   )
   const unfocusFeature = useCallback(() => {
-    if (hoveredFeature) {
+    if (manualFocusedFeature) {
+      setManualFocusedFeature(null)
+      setHoveredCoords(null)
+    }
+  }, [manualFocusedFeature])
+
+  const focusedFeature =
+    manualFocusedFeature ||
+    (validNodes[offset - 1]
+      ? activityToFeature(validNodes[offset - 1].activity)
+      : null)
+
+  useEffect(() => {
+    if (!mapRef.current?.getMap().isStyleLoaded()) {
+      return
+    }
+    if (lastFocusedFeature.current) {
       mapRef.current?.getMap().setFeatureState(
         {
           source: 'run-data',
-          id: hoveredFeature?.id,
+          id: lastFocusedFeature.current.id,
         },
         {
           hover: false,
         }
       )
-      setHoveredFeature(null)
-      setHoveredCoords(null)
     }
-  }, [hoveredFeature])
+    if (
+      focusedFeature &&
+      manualFocusedFeature &&
+      manualFocusedFeature.id === focusedFeature.id
+    ) {
+      lastFocusedFeature.current = focusedFeature
+      mapRef.current?.getMap().setFeatureState(
+        {
+          source: 'run-data',
+          id: focusedFeature.id,
+        },
+        {
+          hover: true,
+        }
+      )
+    }
+  }, [focusedFeature])
 
   return (
     <>
-      <span className="absolute top-0 left-0 m-2 text-neon-yellow z-10">
-        {offset <= validNodes.length
-          ? dayjs(validNodes[offset - 1].activity.start_date_local).format(
-              'MM/DD/YYYY'
-            )
-          : null}
+      <span className="absolute top-0 left-0 m-2 z-10">
+        <RunTimeline
+          activityNodes={activityNodes}
+          focusedFeature={focusedFeature}
+        />
       </span>
       <ReactMapGL
         {...viewport}
@@ -175,7 +247,7 @@ const RunMap: React.FC<{
           }))
         }}
         onHover={e => {
-          if (!mapRef.current?.getMap().isStyleLoaded) {
+          if (!mapRef.current?.getMap().isStyleLoaded()) {
             return
           }
           const feature = mapRef.current?.queryRenderedFeatures(e.point, {
@@ -184,7 +256,8 @@ const RunMap: React.FC<{
           unfocusFeature()
           if (feature) {
             focusFeature(
-              feature as GeoJSON.Feature<GeoJSON.MultiPoint, Run>,
+              true,
+              feature as GeoJSON.Feature<GeoJSON.LineString, Run>,
               e.lngLat
             )
           }
@@ -212,26 +285,29 @@ const RunMap: React.FC<{
             }}
           />
         </Source>
-        {hoveredFeature && hoveredCoords && (
+        {manualFocusedFeature && hoveredCoords && (
           <Popup
             longitude={hoveredCoords[0]}
             latitude={hoveredCoords[1]}
             closeButton={false}
           >
             <div className="text-white">
-              <p className="text-lg">{hoveredFeature.properties.name}</p>
+              <p className="text-lg">{manualFocusedFeature.properties.name}</p>
               <p className="text-sm">
-                {dayjs(hoveredFeature.properties.start_date_local).format(
+                {dayjs(manualFocusedFeature.properties.start_date_local).format(
                   'MM/DD/YYYY'
                 )}
               </p>
               <p>
                 {formatMilesDistance(
-                  metersToMiles(hoveredFeature.properties.distance)
+                  metersToMiles(manualFocusedFeature.properties.distance)
                 )}{' '}
                 &middot;{' '}
                 {dayjs
-                  .duration(hoveredFeature.properties.elapsed_time, 'seconds')
+                  .duration(
+                    manualFocusedFeature.properties.elapsed_time,
+                    'seconds'
+                  )
                   .format('HH:mm:ss')}
               </p>
             </div>
