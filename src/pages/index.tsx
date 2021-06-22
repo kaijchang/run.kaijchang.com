@@ -218,7 +218,7 @@ const RunMap: React.FC<{
             latitude={hoveredCoords[1]}
             closeButton={false}
           >
-            <div className="text-black">
+            <div className="text-white">
               <p className="text-lg">{hoveredFeature.properties.name}</p>
               <p className="text-sm">
                 {dayjs(hoveredFeature.properties.start_date_local).format(
