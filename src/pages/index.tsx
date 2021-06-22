@@ -228,11 +228,14 @@ const RunMap: React.FC<{
     }
   }, [manualFocusedFeature])
 
-  const focusedFeature =
-    manualFocusedFeature ||
-    (validNodes[offset - 1]
-      ? activityToFeature(validNodes[offset - 1].activity)
-      : null)
+  const focusedFeature = useMemo(
+    () =>
+      manualFocusedFeature ||
+      (validNodes[offset - 1]
+        ? activityToFeature(validNodes[offset - 1].activity)
+        : null),
+    [manualFocusedFeature, validNodes, offset]
+  )
 
   return (
     <>
