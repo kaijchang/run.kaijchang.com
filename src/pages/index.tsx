@@ -28,7 +28,8 @@ type ActivityNode = {
   activity: Run
 }
 
-const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2FjaGFuZyIsImEiOiJja2N3aTFqZjgwNGk5MnlteWdoZmVkdHloIn0.0m0MAYL8eeZNWyCZOvbP8g'
+const MAPBOX_TOKEN =
+  'pk.eyJ1Ijoia2FjaGFuZyIsImEiOiJja2N3aTFqZjgwNGk5MnlteWdoZmVkdHloIn0.0m0MAYL8eeZNWyCZOvbP8g'
 const SAN_FRANCISCO_COORDS = {
   latitude: 37.739,
   longitude: -122.444,
@@ -36,7 +37,7 @@ const SAN_FRANCISCO_COORDS = {
 
 const metersPerSecondToMinutesPerMile = (mps: number) => 26.8224 / mps
 const metersToMiles = (m: number) => m / 1609
-const metersToFeet = (m : number) => m * 3.281
+const metersToFeet = (m: number) => m * 3.281
 const formatMilesDistance = (miles: number) => miles.toFixed(2) + ' mi'
 
 type PageData = {
@@ -49,11 +50,12 @@ const RunMap: React.FC<{
   activityNodes: ActivityNode[]
   visibleYears: { [year: number]: boolean }
 }> = ({ activityNodes, visibleYears }) => {
-  const validNodes = useMemo(() => 
-    activityNodes
-      .filter(({ activity }) =>
-        activity.map.summary_polyline != null &&
-        visibleYears[new Date(activity.start_date_local).getFullYear()]
+  const validNodes = useMemo(
+    () =>
+      activityNodes.filter(
+        ({ activity }) =>
+          activity.map.summary_polyline != null &&
+          visibleYears[new Date(activity.start_date_local).getFullYear()]
       ),
     [activityNodes, visibleYears]
   )
@@ -77,21 +79,19 @@ const RunMap: React.FC<{
     width: '100vw',
     height: '100vh',
     zoom: 11,
-    ...SAN_FRANCISCO_COORDS
+    ...SAN_FRANCISCO_COORDS,
   })
-  const geoData = useMemo(() =>
-    ({
+  const geoData = useMemo(
+    () => ({
       type: 'FeatureCollection' as 'FeatureCollection',
-      features: validNodes
-        .slice(0, offset)
-        .map(({ activity }) => {
-          const featureGeoJSON = {
-            type: 'Feature' as 'Feature',
-            geometry: polyline.toGeoJSON(activity.map.summary_polyline),
-            properties: {}
-          }
-          return featureGeoJSON
-        })
+      features: validNodes.slice(0, offset).map(({ activity }) => {
+        const featureGeoJSON = {
+          type: 'Feature' as 'Feature',
+          geometry: polyline.toGeoJSON(activity.map.summary_polyline),
+          properties: {},
+        }
+        return featureGeoJSON
+      }),
     }),
     [validNodes, offset]
   )
@@ -99,7 +99,9 @@ const RunMap: React.FC<{
   return (
     <>
       <span className="absolute top-0 left-0 m-2 text-neon-yellow z-10">
-        {dayjs(validNodes[offset - 1].activity.start_date_local).format('MM/DD/YYYY')}
+        {dayjs(validNodes[offset - 1].activity.start_date_local).format(
+          'MM/DD/YYYY'
+        )}
       </span>
       <ReactMapGL
         {...viewport}
@@ -140,68 +142,95 @@ const RunOverlay: React.FC<{
   setIsYearVisible: (year: number, isVisible: boolean) => void
 }> = ({ activitiesByYear, visibleYears, setIsYearVisible }) => {
   const statsByYear = useMemo(() => {
-    let stats: { [key: number]: [number, number, number, number] } = {};
+    let stats: { [key: number]: [number, number, number, number] } = {}
     for (let year in activitiesByYear) {
-      stats[year as unknown as number] = activitiesByYear[year].reduce((accs, activity) => {
-        return [accs[0] + activity.elapsed_time, accs[1] + activity.distance, accs[2] + activity.total_elevation_gain, ++accs[3]];
-      }, [0, 0, 0, 0]);
+      stats[(year as unknown) as number] = activitiesByYear[year].reduce(
+        (accs, activity) => {
+          return [
+            accs[0] + activity.elapsed_time,
+            accs[1] + activity.distance,
+            accs[2] + activity.total_elevation_gain,
+            ++accs[3],
+          ]
+        },
+        [0, 0, 0, 0]
+      )
     }
-    return stats;
+    return stats
   }, [activitiesByYear])
 
   return (
     <div className="flex flex-row md:flex-col fixed overflow-x-auto md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-4 px-4 md:px-8 rounded-md z-10 bg-black text-white border border-gray-100">
-      {
-        (Object.keys(statsByYear) as unknown as number[])
-          .sort((a, b) => +b - +a)
-          .map((year, idx) => (
-            <div className="w-40 md:w-auto min-w-40 md:min-w-0 mr-4 md:mr-0" key={idx}>
-              <button className={`cursor-pointer select-none ${visibleYears[year] ? '' : 'opacity-50'}`}>
-                <h1
-                  className="text-4xl text-neon-yellow leading-tight"
-                  onClick={() => setIsYearVisible(year, !visibleYears[year])}
-                >
-                  {year}
-                </h1>
-              </button>
-              <div className="text-gray-300">
-                <p>{statsByYear[year][3]} runs</p>
-                <p>{(statsByYear[year][0] / 60 / 60).toFixed(2)} hrs</p>
-                <p>{formatMilesDistance(metersToMiles(statsByYear[year][1]))}</p>
-                <p>{Math.round(metersToFeet(statsByYear[year][2])).toLocaleString()} ft elevation</p>
-              </div>
+      {((Object.keys(statsByYear) as unknown) as number[])
+        .sort((a, b) => +b - +a)
+        .map((year, idx) => (
+          <div
+            className="w-40 md:w-auto min-w-40 md:min-w-0 mr-4 md:mr-0"
+            key={idx}
+          >
+            <button
+              className={`cursor-pointer select-none ${
+                visibleYears[year] ? '' : 'opacity-50'
+              }`}
+            >
+              <h1
+                className="text-4xl text-neon-yellow leading-tight"
+                onClick={() => setIsYearVisible(year, !visibleYears[year])}
+              >
+                {year}
+              </h1>
+            </button>
+            <div className="text-gray-300">
+              <p>{statsByYear[year][3]} runs</p>
+              <p>{(statsByYear[year][0] / 60 / 60).toFixed(2)} hrs</p>
+              <p>{formatMilesDistance(metersToMiles(statsByYear[year][1]))}</p>
+              <p>
+                {Math.round(
+                  metersToFeet(statsByYear[year][2])
+                ).toLocaleString()}{' '}
+                ft elevation
+              </p>
             </div>
-          ))
-      }
-      <div className="flex-grow"/>
-      <a className="font-mono text-lg mb-1 mr-2 md:mr-0" href="https://kaijchang.com" target="_blank">kaijchang.com</a>
+          </div>
+        ))}
+      <div className="flex-grow" />
+      <a
+        className="font-mono text-lg mb-1 mr-2 md:mr-0"
+        href="https://kaijchang.com"
+        target="_blank"
+      >
+        kaijchang.com
+      </a>
     </div>
   )
 }
 
 const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
-  const activityNodes = useMemo(() =>
-    data.allStravaActivity.nodes
-      .sort((a, b) =>
-        new Date(a.activity.start_date_local).valueOf() -
-        new Date(b.activity.start_date_local).valueOf()
+  const activityNodes = useMemo(
+    () =>
+      data.allStravaActivity.nodes.sort(
+        (a, b) =>
+          new Date(a.activity.start_date_local).valueOf() -
+          new Date(b.activity.start_date_local).valueOf()
       ),
     [data.allStravaActivity.nodes]
   )
 
-  const activitiesByYear = useMemo(() => activityNodes.reduce((years, { activity }: { activity: Run }) => {
-    const year = activity.start_date_local.substr(0, 4);
-    if (!Object.keys(years).includes(year)) {
-      years[year] = []
-    }
-    years[year].push(activity);
-    return years;
-  }, {} as { [key: string]: Run[] }), [activityNodes])
+  const activitiesByYear = useMemo(
+    () =>
+      activityNodes.reduce((years, { activity }: { activity: Run }) => {
+        const year = activity.start_date_local.substr(0, 4)
+        if (!Object.keys(years).includes(year)) {
+          years[year] = []
+        }
+        years[year].push(activity)
+        return years
+      }, {} as { [key: string]: Run[] }),
+    [activityNodes]
+  )
 
   const [visibleYears, setVisibleYears] = useState(
-    fromEntries(
-      Object.keys(activitiesByYear).map(year => [year, true])
-    )
+    fromEntries(Object.keys(activitiesByYear).map(year => [year, true]))
   )
 
   return (
@@ -209,10 +238,7 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
       <Helmet>
         <title>Run</title>
       </Helmet>
-      <RunMap
-        activityNodes={activityNodes}
-        visibleYears={visibleYears}
-      />
+      <RunMap activityNodes={activityNodes} visibleYears={visibleYears} />
       <RunOverlay
         activitiesByYear={activitiesByYear}
         visibleYears={visibleYears}
@@ -231,12 +257,14 @@ export default LandingPage
 
 export const query = graphql`
   query {
-    allStravaActivity(filter: {
-      activity: {
-        type: { eq: "Run" }
-        start_date_local: { gt: "2019-01-01" }
+    allStravaActivity(
+      filter: {
+        activity: {
+          type: { eq: "Run" }
+          start_date_local: { gt: "2019-01-01" }
+        }
       }
-    }) {
+    ) {
       nodes {
         activity {
           id
