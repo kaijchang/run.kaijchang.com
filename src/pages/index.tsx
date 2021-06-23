@@ -116,11 +116,12 @@ const RunTimeline: React.FC<{
               <line
                 key={idx}
                 onMouseEnter={() => {
-                  const coords = polyline.decode(activity.map.summary_polyline)
+                  const feature = activityToFeature(activity)
+                  const coords = feature.geometry.coordinates
                   unfocusFeature()
                   focusFeature(
                     true,
-                    activityToFeature(activity),
+                    feature,
                     coords[Math.round(coords.length / 2)].reverse() as [
                       number,
                       number
