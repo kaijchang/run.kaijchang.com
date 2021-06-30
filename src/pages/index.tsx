@@ -1,5 +1,6 @@
 import React, {
   LegacyRef,
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -86,7 +87,7 @@ const RunTimeline: React.FC<{
     longLat?: [number, number]
   ) => void
   unfocusFeature: () => void
-}> = ({ activityNodes, focusedFeature, focusFeature, unfocusFeature }) => {
+}> = memo(({ activityNodes, focusedFeature, focusFeature, unfocusFeature }) => {
   const width = 300
   const height = 25
   const start = activityNodes[0].activity.start_date_local
@@ -149,7 +150,7 @@ const RunTimeline: React.FC<{
       </svg>
     </div>
   )
-}
+})
 
 const RunMap: React.FC<{
   activityNodes: ActivityNode[]
