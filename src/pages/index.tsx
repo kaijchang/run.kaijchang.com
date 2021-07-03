@@ -123,7 +123,7 @@ const RunTimeline: React.FC<{
                   focusFeature(
                     true,
                     feature,
-                    coords[Math.round(coords.length / 2)].reverse() as [
+                    coords[Math.round(coords.length / 2)] as [
                       number,
                       number
                     ]
