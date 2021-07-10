@@ -2,7 +2,6 @@ import React, {
   LegacyRef,
   memo,
   useCallback,
-  useEffect,
   useMemo,
   useState,
   useRef,
@@ -123,10 +122,7 @@ const RunTimeline: React.FC<{
                   focusFeature(
                     true,
                     feature,
-                    coords[Math.round(coords.length / 2)] as [
-                      number,
-                      number
-                    ]
+                    coords[Math.round(coords.length / 2)] as [number, number]
                   )
                 }}
                 x1={x}
@@ -377,13 +373,14 @@ const RunOverlay: React.FC<{
           </div>
         ))}
       <div className="flex-grow" />
-      <a
-        className="font-mono text-lg mb-1 mr-2 md:mr-0"
-        href="https://kaijchang.com"
-        target="_blank"
-      >
-        kaijchang.com
-      </a>
+      <div className="flex flex-col font-mono text-md mr-2 md:mr-0">
+        <a href="https://kaijchang.com" target="_blank">
+          kaijchang.com
+        </a>
+        <a href="https://www.strava.com/athletes/57977907" target="_blank">
+          strava
+        </a>
+      </div>
     </div>
   )
 }
