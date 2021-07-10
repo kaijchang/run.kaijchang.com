@@ -171,21 +171,6 @@ const RunMap: React.FC<{
       ),
     [activityNodes, visibleYears]
   )
-  const [offset, setOffset] = useState(1)
-
-  useEffect(() => {
-    setOffset(1)
-    const interval = setInterval(() => {
-      setOffset(oldOffset => {
-        if (oldOffset >= validNodes.length) {
-          clearInterval(interval)
-          return oldOffset
-        }
-        return oldOffset + 1
-      })
-    }, 50)
-    return () => clearInterval(interval)
-  }, [validNodes])
 
   const [viewport, setViewport] = useState<InteractiveMapProps>({
     width: '100vw',
@@ -197,11 +182,10 @@ const RunMap: React.FC<{
     () => ({
       type: 'FeatureCollection' as 'FeatureCollection',
       features: validNodes
-        .slice(0, offset)
         .filter(node => node.activity.id !== manualFocusedFeature?.id)
         .map(({ activity }) => activityToFeature(activity)),
     }),
-    [validNodes, offset, manualFocusedFeature]
+    [validNodes, manualFocusedFeature]
   )
 
   const focusFeature = useCallback(
@@ -233,10 +217,10 @@ const RunMap: React.FC<{
   const focusedFeature = useMemo(
     () =>
       manualFocusedFeature ||
-      (validNodes[offset - 1]
-        ? activityToFeature(validNodes[offset - 1].activity)
+      (validNodes[validNodes.length - 1]
+        ? activityToFeature(validNodes[validNodes.length - 1].activity)
         : null),
-    [manualFocusedFeature, validNodes, offset]
+    [manualFocusedFeature, validNodes]
   )
 
   return (
