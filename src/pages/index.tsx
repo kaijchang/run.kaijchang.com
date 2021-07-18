@@ -24,37 +24,16 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 dayjs.extend(duration)
 
+import {
+  metersToMiles,
+  metersToFeet,
+  formatMilesDistance,
+} from '../utils/units'
+import { MAPBOX_TOKEN, SAN_FRANCISCO_COORDS } from '../constants'
+import { ActivityNode, PageData, Run } from '../types'
+
 import '../styles/layout.css'
 
-type Run = {
-  id: number
-  name: string
-  distance: number
-  elapsed_time: number
-  average_speed: number
-  average_heartrate: number
-  total_elevation_gain: number
-  start_date_local: string
-  map: {
-    summary_polyline: string
-  }
-}
-
-type ActivityNode = {
-  activity: Run
-}
-
-const MAPBOX_TOKEN =
-  'pk.eyJ1Ijoia2FjaGFuZyIsImEiOiJja2N3aTFqZjgwNGk5MnlteWdoZmVkdHloIn0.0m0MAYL8eeZNWyCZOvbP8g'
-const SAN_FRANCISCO_COORDS = {
-  latitude: 37.739,
-  longitude: -122.444,
-}
-
-const metersPerSecondToMinutesPerMile = (mps: number) => 26.8224 / mps
-const metersToMiles = (m: number) => m / 1609
-const metersToFeet = (m: number) => m * 3.281
-const formatMilesDistance = (miles: number) => miles.toFixed(2) + ' mi'
 const activityToFeature = (activity: Run) =>
   ({
     id: activity.id,
@@ -70,12 +49,6 @@ const LAYER_STYLE = {
     'line-cap': 'round',
   },
 } as LayerProps
-
-type PageData = {
-  allStravaActivity: {
-    nodes: ActivityNode[]
-  }
-}
 
 const RunTimeline: React.FC<{
   activityNodes: ActivityNode[]
