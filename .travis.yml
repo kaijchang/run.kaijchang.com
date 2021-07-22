@@ -5,6 +5,7 @@ script:
 cache:
   directories:
   - .cache
+  - public
 deploy:
   provider: pages
   skip-cleanup: true
