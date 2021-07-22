@@ -125,10 +125,11 @@ const RunTimeline: React.FC<{
 const PlaceSelector: React.FC<{
   viewport: InteractiveMapProps
   setViewport: React.Dispatch<React.SetStateAction<InteractiveMapProps>>
+  initialPlace: Geocoding['features'][number]
   visiblePlacesById: { [id: string]: Geocoding['features'][number] }
-}> = ({ viewport, setViewport, visiblePlacesById }) => {
+}> = ({ viewport, setViewport, initialPlace, visiblePlacesById }) => {
   const [selectedPlaceId, setSelectedPlaceId] = useState(
-    Object.values(visiblePlacesById)[0]?.id || DEFAULT_PLACE.id
+    initialPlace?.id || DEFAULT_PLACE.id
   )
   useEffect(() => {
     if (Object.values(visiblePlacesById).length === 0) {
@@ -172,9 +173,10 @@ const PlaceSelector: React.FC<{
 
 const RunMap: React.FC<{
   activityNodes: ActivityNode[]
+  finalPlaceId: string
   visiblePlacesById: { [id: string]: Geocoding['features'][number] }
   visibleYears: { [year: number]: boolean }
-}> = ({ activityNodes, visibleYears, visiblePlacesById }) => {
+}> = ({ activityNodes, finalPlaceId, visiblePlacesById, visibleYears }) => {
   const mapRef = useRef<InteractiveMap>()
   const [
     manualFocusedFeature,
@@ -191,7 +193,8 @@ const RunMap: React.FC<{
     [activityNodes, visibleYears]
   )
 
-  const initialPlace = Object.values(visiblePlacesById)[0] || DEFAULT_PLACE
+  const initialPlace =
+    (finalPlaceId && visiblePlacesById[finalPlaceId]) || DEFAULT_PLACE
 
   const [viewport, setViewport] = useState<InteractiveMapProps>({
     width: '100vw',
@@ -216,9 +219,6 @@ const RunMap: React.FC<{
       feature: GeoJSON.Feature<GeoJSON.LineString, Run>,
       lngLat?: [number, number]
     ) => {
-      if (!mapRef.current?.getMap().isStyleLoaded()) {
-        return
-      }
       setManualFocusedFeature(feature)
       if (popup) {
         setHoveredCoords(lngLat)
@@ -227,9 +227,6 @@ const RunMap: React.FC<{
     []
   )
   const unfocusFeature = useCallback(() => {
-    if (!mapRef.current?.getMap().isStyleLoaded()) {
-      return
-    }
     if (manualFocusedFeature) {
       setManualFocusedFeature(null)
       setHoveredCoords(null)
@@ -245,6 +242,26 @@ const RunMap: React.FC<{
     [manualFocusedFeature, validNodes]
   )
 
+  useEffect(() => {
+    const mapStyleLoadListener = () => {
+      if (validNodes[validNodes.length - 1]) {
+        const feature = activityToFeature(
+          validNodes[validNodes.length - 1].activity
+        )
+        const coords = feature.geometry.coordinates
+        focusFeature(
+          true,
+          feature,
+          coords[Math.round(coords.length / 2)] as [number, number]
+        )
+      }
+    }
+    mapRef.current?.getMap().on('style.load', mapStyleLoadListener)
+    return () => {
+      mapRef.current?.getMap().off('style.load', mapStyleLoadListener)
+    }
+  }, [])
+
   return (
     <>
       <span className="absolute top-0 left-0 m-2 z-10">
@@ -256,6 +273,7 @@ const RunMap: React.FC<{
         />
         <div className="mt-2">
           <PlaceSelector
+            initialPlace={initialPlace as Geocoding['features'][number]}
             viewport={viewport}
             setViewport={setViewport}
             visiblePlacesById={visiblePlacesById}
@@ -453,24 +471,25 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
     )
   )
 
-  const visiblePlacesById = useMemo(
+  const [finalPlaceId, visiblePlacesById] = useMemo(
     () =>
       activityNodes
         .filter(
           ({ activity }) =>
             visibleYears[new Date(activity.start_date_local).getFullYear()]
         )
-        .reduce((places, { fields: { geocoding } }) => {
-          geocoding.features.forEach(feature => {
-            if (
-              !(feature.id in places) &&
-              feature.place_type.includes('place')
-            ) {
-              places[feature.id] = feature
-            }
-          })
-          return places
-        }, {} as { [key: string]: Geocoding['features'][number] }),
+        .reduce(
+          ([finalPlaceId, places], { fields: { geocoding } }) => {
+            geocoding.features.forEach(feature => {
+              if (feature.place_type.includes('place')) {
+                if (!(feature.id in places)) places[feature.id] = feature
+                finalPlaceId = feature.id
+              }
+            })
+            return [finalPlaceId, places]
+          },
+          ['', {}] as [string, { [key: string]: Geocoding['features'][number] }]
+        ),
     [visibleYears, activityNodes]
   )
 
@@ -483,6 +502,7 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
         activityNodes={activityNodes.filter(
           ({ activity }) => activity.map.summary_polyline !== null
         )}
+        finalPlaceId={finalPlaceId}
         visiblePlacesById={visiblePlacesById}
         visibleYears={visibleYears}
       />
