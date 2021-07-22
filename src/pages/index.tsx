@@ -2,6 +2,7 @@ import React, {
   LegacyRef,
   memo,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   useRef,
@@ -29,8 +30,8 @@ import {
   metersToFeet,
   formatMilesDistance,
 } from '../utils/units'
-import { MAPBOX_TOKEN, SAN_FRANCISCO_COORDS } from '../constants'
-import { ActivityNode, PageData, Run } from '../types'
+import { DEFAULT_PLACE } from '../constants'
+import { ActivityNode, PageData, Run, Geocoding } from '../types'
 
 import '../styles/layout.css'
 
@@ -121,10 +122,59 @@ const RunTimeline: React.FC<{
   )
 })
 
+const PlaceSelector: React.FC<{
+  viewport: InteractiveMapProps
+  setViewport: React.Dispatch<React.SetStateAction<InteractiveMapProps>>
+  visiblePlacesById: { [id: string]: Geocoding['features'][number] }
+}> = ({ viewport, setViewport, visiblePlacesById }) => {
+  const [selectedPlaceId, setSelectedPlaceId] = useState(
+    Object.values(visiblePlacesById)[0]?.id || DEFAULT_PLACE.id
+  )
+  useEffect(() => {
+    if (Object.values(visiblePlacesById).length === 0) {
+      setSelectedPlaceId(DEFAULT_PLACE.id)
+    } else if (!(selectedPlaceId in visiblePlacesById)) {
+      setSelectedPlaceId(Object.values(visiblePlacesById)[0].id)
+    }
+  }, [visiblePlacesById])
+  useEffect(() => {
+    const selectedPlace =
+      selectedPlaceId === DEFAULT_PLACE.id
+        ? DEFAULT_PLACE
+        : visiblePlacesById[selectedPlaceId]
+    setViewport({
+      ...viewport,
+      zoom: 10.5,
+      longitude: selectedPlace.center[0],
+      latitude: selectedPlace.center[1],
+    })
+  }, [selectedPlaceId])
+
+  return (
+    <select
+      className="bg-transparent text-white border-2 rounded-md border-white"
+      value={selectedPlaceId}
+      onChange={e => setSelectedPlaceId(e.target.value)}
+    >
+      {Object.values(visiblePlacesById).length === 0 && (
+        <option value={DEFAULT_PLACE.id}>{DEFAULT_PLACE.text}</option>
+      )}
+      {Object.values(visiblePlacesById).map((place, idx) => {
+        return (
+          <option key={idx} value={place.id}>
+            {place.text}
+          </option>
+        )
+      })}
+    </select>
+  )
+}
+
 const RunMap: React.FC<{
   activityNodes: ActivityNode[]
+  visiblePlacesById: { [id: string]: Geocoding['features'][number] }
   visibleYears: { [year: number]: boolean }
-}> = ({ activityNodes, visibleYears }) => {
+}> = ({ activityNodes, visibleYears, visiblePlacesById }) => {
   const mapRef = useRef<InteractiveMap>()
   const [
     manualFocusedFeature,
@@ -141,11 +191,14 @@ const RunMap: React.FC<{
     [activityNodes, visibleYears]
   )
 
+  const initialPlace = Object.values(visiblePlacesById)[0] || DEFAULT_PLACE
+
   const [viewport, setViewport] = useState<InteractiveMapProps>({
     width: '100vw',
     height: '100vh',
-    zoom: 11,
-    ...SAN_FRANCISCO_COORDS,
+    zoom: 10.5,
+    longitude: initialPlace.center[0],
+    latitude: initialPlace.center[1],
   })
   const geoData = useMemo(
     () => ({
@@ -201,6 +254,13 @@ const RunMap: React.FC<{
           focusFeature={focusFeature}
           unfocusFeature={unfocusFeature}
         />
+        <div className="mt-2">
+          <PlaceSelector
+            viewport={viewport}
+            setViewport={setViewport}
+            visiblePlacesById={visiblePlacesById}
+          />
+        </div>
       </span>
       <ReactMapGL
         {...viewport}
@@ -226,7 +286,7 @@ const RunMap: React.FC<{
             )
           }
         }}
-        mapboxApiAccessToken={MAPBOX_TOKEN}
+        mapboxApiAccessToken={process.env.GATSBY_MAPBOX_TOKEN}
         mapStyle="mapbox://styles/kachang/ckcwk1fcn0blk1joa9aowzlur"
       >
         <Source id="run-data" type="geojson" data={geoData}>
@@ -289,7 +349,7 @@ const RunMap: React.FC<{
 }
 
 const RunOverlay: React.FC<{
-  activitiesByYear: { [year: number]: Run[] }
+  activitiesByYear: { [year: number]: ActivityNode[] }
   visibleYears: { [year: number]: boolean }
   setIsYearVisible: (year: number, isVisible: boolean) => void
 }> = ({ activitiesByYear, visibleYears, setIsYearVisible }) => {
@@ -297,7 +357,8 @@ const RunOverlay: React.FC<{
     let stats: { [key: number]: [number, number, number, number] } = {}
     for (let year in activitiesByYear) {
       stats[(year as unknown) as number] = activitiesByYear[year].reduce(
-        (accs, activity) => {
+        (accs, node) => {
+          const { activity } = node
           return [
             accs[0] + activity.elapsed_time,
             accs[1] + activity.distance,
@@ -371,14 +432,15 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
 
   const activitiesByYear = useMemo(
     () =>
-      activityNodes.reduce((years, { activity }: { activity: Run }) => {
+      activityNodes.reduce((years, node: ActivityNode) => {
+        const { activity } = node
         const year = activity.start_date_local.substr(0, 4)
-        if (!Object.keys(years).includes(year)) {
+        if (!(year in years)) {
           years[year] = []
         }
-        years[year].push(activity)
+        years[year].push(node)
         return years
-      }, {} as { [key: string]: Run[] }),
+      }, {} as { [key: string]: ActivityNode[] }),
     [activityNodes]
   )
 
@@ -391,6 +453,27 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
     )
   )
 
+  const visiblePlacesById = useMemo(
+    () =>
+      activityNodes
+        .filter(
+          ({ activity }) =>
+            visibleYears[new Date(activity.start_date_local).getFullYear()]
+        )
+        .reduce((places, { fields: { geocoding } }) => {
+          geocoding.features.forEach(feature => {
+            if (
+              !(feature.id in places) &&
+              feature.place_type.includes('place')
+            ) {
+              places[feature.id] = feature
+            }
+          })
+          return places
+        }, {} as { [key: string]: Geocoding['features'][number] }),
+    [visibleYears, activityNodes]
+  )
+
   return (
     <>
       <Helmet>
@@ -400,6 +483,7 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
         activityNodes={activityNodes.filter(
           ({ activity }) => activity.map.summary_polyline !== null
         )}
+        visiblePlacesById={visiblePlacesById}
         visibleYears={visibleYears}
       />
       <RunOverlay
@@ -439,6 +523,16 @@ export const query = graphql`
           total_elevation_gain
           map {
             summary_polyline
+          }
+        }
+        fields {
+          geocoding {
+            features {
+              id
+              center
+              place_type
+              text
+            }
           }
         }
       }
