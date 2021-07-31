@@ -1,6 +1,7 @@
 import React, {
   LegacyRef,
   memo,
+  MutableRefObject,
   useCallback,
   useEffect,
   useMemo,
@@ -123,11 +124,13 @@ const RunTimeline: React.FC<{
 })
 
 const PlaceSelector: React.FC<{
+  mapRef: MutableRefObject<InteractiveMap>
   viewport: InteractiveMapProps
   setViewport: React.Dispatch<React.SetStateAction<InteractiveMapProps>>
   initialPlace: Geocoding['features'][number]
   visiblePlacesById: { [id: string]: Geocoding['features'][number] }
-}> = ({ viewport, setViewport, initialPlace, visiblePlacesById }) => {
+}> = ({ mapRef, viewport, setViewport, initialPlace, visiblePlacesById }) => {
+  const isFirstRender = useRef(true)
   const [selectedPlaceId, setSelectedPlaceId] = useState(
     initialPlace?.id || DEFAULT_PLACE.id
   )
@@ -139,15 +142,20 @@ const PlaceSelector: React.FC<{
     }
   }, [visiblePlacesById])
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     const selectedPlace =
       selectedPlaceId === DEFAULT_PLACE.id
         ? DEFAULT_PLACE
         : visiblePlacesById[selectedPlaceId]
-    setViewport({
-      ...viewport,
+    mapRef.current?.getMap().flyTo({
+      center: {
+        lng: selectedPlace.center[0],
+        lat: selectedPlace.center[1],
+      },
       zoom: 10.5,
-      longitude: selectedPlace.center[0],
-      latitude: selectedPlace.center[1],
     })
   }, [selectedPlaceId])
 
@@ -273,6 +281,7 @@ const RunMap: React.FC<{
         />
         <div className="mt-2">
           <PlaceSelector
+            mapRef={mapRef as MutableRefObject<InteractiveMap>}
             initialPlace={initialPlace as Geocoding['features'][number]}
             viewport={viewport}
             setViewport={setViewport}
