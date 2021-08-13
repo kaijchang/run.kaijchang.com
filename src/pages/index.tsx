@@ -11,6 +11,7 @@ import React, {
 import { graphql } from 'gatsby'
 
 import ReactMapGL, {
+  FlyToInterpolator,
   Popup,
   Source,
   Layer,
@@ -19,6 +20,7 @@ import ReactMapGL, {
   LayerProps,
 } from 'react-map-gl'
 import Helmet from 'react-helmet'
+import * as d3 from 'd3-ease'
 
 import polyline from '@mapbox/polyline'
 import fromEntries from 'fromentries'
@@ -124,12 +126,11 @@ const RunTimeline: React.FC<{
 })
 
 const PlaceSelector: React.FC<{
-  mapRef: MutableRefObject<InteractiveMap>
   viewport: InteractiveMapProps
   setViewport: React.Dispatch<React.SetStateAction<InteractiveMapProps>>
   initialPlace: Geocoding['features'][number]
   visiblePlacesById: { [id: string]: Geocoding['features'][number] }
-}> = ({ mapRef, viewport, setViewport, initialPlace, visiblePlacesById }) => {
+}> = ({ viewport, setViewport, initialPlace, visiblePlacesById }) => {
   const isFirstRender = useRef(true)
   const [selectedPlaceId, setSelectedPlaceId] = useState(
     initialPlace?.id || DEFAULT_PLACE.id
@@ -150,12 +151,14 @@ const PlaceSelector: React.FC<{
       selectedPlaceId === DEFAULT_PLACE.id
         ? DEFAULT_PLACE
         : visiblePlacesById[selectedPlaceId]
-    mapRef.current?.getMap().flyTo({
-      center: {
-        lng: selectedPlace.center[0],
-        lat: selectedPlace.center[1],
-      },
+    setViewport({
+      ...viewport,
+      longitude: selectedPlace.center[0],
+      latitude: selectedPlace.center[1],
       zoom: 10.5,
+      transitionDuration: 4000,
+      transitionInterpolator: new FlyToInterpolator(),
+      transitionEasing: d3.easeQuad,
     })
   }, [selectedPlaceId])
 
@@ -281,7 +284,6 @@ const RunMap: React.FC<{
         />
         <div className="mt-2">
           <PlaceSelector
-            mapRef={mapRef as MutableRefObject<InteractiveMap>}
             initialPlace={initialPlace as Geocoding['features'][number]}
             viewport={viewport}
             setViewport={setViewport}
