@@ -539,7 +539,7 @@ export const query = graphql`
       filter: {
         activity: {
           type: { eq: "Run" }
-          start_date_local: { gt: "2019-01-01" }
+          start_date_local: { gt: "2018-12-31" }
         }
       }
     ) {
