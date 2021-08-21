@@ -72,7 +72,7 @@ const RunTimeline: React.FC<{
       activityNodes[activityNodes.length - 1].activity.start_date_local
     ).diff(start)
   )
-  const step = width / timespan.asDays()
+  const step = width / (timespan.asDays() + 2)
   const timeSinceFocusedFeature =
     focusedFeature &&
     dayjs
@@ -80,48 +80,53 @@ const RunTimeline: React.FC<{
       .asDays()
 
   return (
-    <div className="rounded-sm overflow-hidden">
-      <svg width={width} height={height} fill="black">
-        <g strokeWidth={step} fill="#e0e722" stroke="#e0e722">
-          {activityNodes.map(({ activity }, idx) => {
-            const x =
-              step *
-              dayjs
-                .duration(dayjs(activity.start_date_local).diff(start))
-                .asDays()
-            return (
-              <line
-                key={idx}
-                onMouseEnter={() => {
-                  const feature = activityToFeature(activity)
-                  const coords = feature.geometry.coordinates
-                  unfocusFeature()
-                  focusFeature(
-                    true,
-                    feature,
-                    coords[Math.round(coords.length / 2)] as [number, number]
-                  )
-                }}
-                x1={x}
-                x2={x}
-                y1={0}
-                y2={height}
-              />
-            )
-          })}
-          {focusedFeature && timeSinceFocusedFeature && (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width="calc(100vw - 1rem)"
+      height={height}
+      preserveAspectRatio="none"
+      fill="black"
+    >
+      <g strokeWidth={step} fill="#e0e722" stroke="#e0e722">
+        {activityNodes.map(({ activity }, idx) => {
+          const x =
+            step *
+            (dayjs
+              .duration(dayjs(activity.start_date_local).diff(start))
+              .asDays() +
+              1)
+          return (
             <line
-              stroke="red"
-              strokeWidth={1}
-              x1={step * timeSinceFocusedFeature}
-              x2={step * timeSinceFocusedFeature}
+              key={idx}
+              onMouseEnter={() => {
+                const feature = activityToFeature(activity)
+                const coords = feature.geometry.coordinates
+                unfocusFeature()
+                focusFeature(
+                  true,
+                  feature,
+                  coords[Math.round(coords.length / 2)] as [number, number]
+                )
+              }}
+              x1={x}
+              x2={x}
               y1={0}
               y2={height}
             />
-          )}
-        </g>
-      </svg>
-    </div>
+          )
+        })}
+        {focusedFeature && timeSinceFocusedFeature && (
+          <line
+            stroke="red"
+            strokeWidth={step}
+            x1={step * (timeSinceFocusedFeature + 1)}
+            x2={step * (timeSinceFocusedFeature + 1)}
+            y1={0}
+            y2={height}
+          />
+        )}
+      </g>
+    </svg>
   )
 })
 
