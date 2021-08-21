@@ -115,7 +115,7 @@ const RunTimeline: React.FC<{
             />
           )
         })}
-        {focusedFeature && timeSinceFocusedFeature && (
+        {focusedFeature && timeSinceFocusedFeature !== null && (
           <line
             stroke="red"
             strokeWidth={step}
