@@ -376,7 +376,7 @@ const RunMap: React.FC<{
                 &middot;{' '}
                 {dayjs
                   .duration(
-                    manualFocusedFeature.properties.elapsed_time,
+                    manualFocusedFeature.properties.moving_time,
                     'seconds'
                   )
                   .format('HH:mm:ss')}
@@ -401,7 +401,7 @@ const RunOverlay: React.FC<{
         (accs, node) => {
           const { activity } = node
           return [
-            accs[0] + activity.elapsed_time,
+            accs[0] + activity.moving_time,
             accs[1] + activity.distance,
             accs[2] + activity.total_elevation_gain,
             ++accs[3],
@@ -563,7 +563,7 @@ export const query = graphql`
           id
           name
           distance
-          elapsed_time
+          moving_time
           average_speed
           start_date_local
           start_latlng
