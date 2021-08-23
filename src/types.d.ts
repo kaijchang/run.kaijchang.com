@@ -3,6 +3,8 @@ export type Run = {
   name: string
   distance: number
   elapsed_time: number
+  moving_time: number
+  start_latlng: [number, number]
   average_speed: number
   average_heartrate: number
   total_elevation_gain: number
