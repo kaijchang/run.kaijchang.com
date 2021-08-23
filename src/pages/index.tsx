@@ -502,10 +502,13 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
             visibleYears[new Date(activity.start_date_local).getFullYear()]
         )
         .reduce(
-          ([finalPlaceId, places], { fields: { geocoding } }) => {
+          ([finalPlaceId, places], { activity, fields: { geocoding } }) => {
             geocoding.features.forEach(feature => {
               if (feature.place_type.includes('place')) {
                 if (!(feature.id in places)) places[feature.id] = feature
+                if (activity.start_latlng) {
+                  places[feature.id].center = activity.start_latlng.reverse() as [number, number]
+                }
                 finalPlaceId = feature.id
               }
             })
@@ -563,6 +566,7 @@ export const query = graphql`
           elapsed_time
           average_speed
           start_date_local
+          start_latlng
           total_elevation_gain
           map {
             summary_polyline
