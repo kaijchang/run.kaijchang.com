@@ -141,11 +141,31 @@ const PlaceSelector: React.FC<{
   setViewport: React.Dispatch<React.SetStateAction<InteractiveMapProps>>
   initialPlace: Geocoding['features'][number]
   visiblePlacesById: { [id: string]: Geocoding['features'][number] }
-}> = ({ viewport, setViewport, initialPlace, visiblePlacesById }) => {
+  validNodes: ActivityNode[]
+}> = ({
+  viewport,
+  setViewport,
+  initialPlace,
+  visiblePlacesById,
+  validNodes,
+}) => {
   const isFirstRender = useRef(true)
   const [selectedPlaceId, setSelectedPlaceId] = useState(
     initialPlace?.id || DEFAULT_PLACE.id
   )
+  const distanceByPlace = useMemo(() => {
+    const distances: { [key: string]: number } = {}
+    validNodes.forEach(({ activity, fields: { geocoding } }) => {
+      const place = geocoding.features.find(feature =>
+        feature.place_type.includes('place')
+      )
+      if (place) {
+        distances[place.id] = (distances[place.id] || 0) + activity.distance
+      }
+    })
+    return distances
+  }, [validNodes])
+
   useEffect(() => {
     if (Object.values(visiblePlacesById).length === 0) {
       setSelectedPlaceId(DEFAULT_PLACE.id)
@@ -185,7 +205,8 @@ const PlaceSelector: React.FC<{
       {Object.values(visiblePlacesById).map((place, idx) => {
         return (
           <option key={idx} value={place.id}>
-            {place.text}
+            {place.text} (
+            {formatMilesDistance(metersToMiles(distanceByPlace[place.id]))})
           </option>
         )
       })}
@@ -300,6 +321,7 @@ const RunMap: React.FC<{
             viewport={viewport}
             setViewport={setViewport}
             visiblePlacesById={visiblePlacesById}
+            validNodes={validNodes}
           />
         </div>
       </span>
@@ -507,7 +529,9 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
               if (feature.place_type.includes('place')) {
                 if (!(feature.id in places)) places[feature.id] = feature
                 if (activity.start_latlng) {
-                  places[feature.id].center = activity.start_latlng.reverse() as [number, number]
+                  places[
+                    feature.id
+                  ].center = activity.start_latlng.reverse() as [number, number]
                 }
                 finalPlaceId = feature.id
               }
