@@ -182,6 +182,7 @@ const PlaceSelector: React.FC<{
       selectedPlaceId === DEFAULT_PLACE.id
         ? DEFAULT_PLACE
         : visiblePlacesById[selectedPlaceId]
+    console.log(selectedPlace)
     setViewport({
       ...viewport,
       longitude: selectedPlace.center[0],
@@ -531,7 +532,10 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
                 if (activity.start_latlng) {
                   places[
                     feature.id
-                  ].center = activity.start_latlng.reverse() as [number, number]
+                  ].center = activity.start_latlng.slice().reverse() as [
+                    number,
+                    number
+                  ]
                 }
                 finalPlaceId = feature.id
               }
