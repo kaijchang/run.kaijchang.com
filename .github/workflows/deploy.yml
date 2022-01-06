@@ -17,8 +17,10 @@ jobs:
           node-version: '16'
       - uses: actions/cache@v2
         with:
-          path: .cache
-          key: run-gatsby-cache
+          path: |
+            .cache
+            public
+          key: run-gatsby-cache-v1
       - run: yarn install --frozen-lockfile
       - run: yarn build
         env:
