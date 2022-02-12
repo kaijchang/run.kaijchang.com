@@ -310,7 +310,10 @@ const RunMap: React.FC<{
     <>
       <span className="absolute top-0 left-0 m-2 z-10">
         <RunTimeline
-          activityNodes={activityNodes}
+          activityNodes={
+            activityNodes
+              .filter(({ activity }) => dayjs(activity.start_date_local) > dayjs().subtract(3, 'year'))
+          }
           visibleYears={visibleYears}
           focusedFeature={focusedFeature}
           focusFeature={focusFeature}
