@@ -5,24 +5,24 @@
 @tailwind components;
 
 .mapboxgl-popup-content {
-  @apply bg-gray-900 !important;
+  @apply bg-gray-100 !important;
 }
 
 .mapboxgl-popup-anchor-top .mapboxgl-popup-tip,
 .mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip,
 .mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip {
-  border-bottom-color: rgba(17, 24, 39) !important;
+  border-bottom-color: rgb(247, 250, 252) !important;
 }
 .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip,
 .mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip,
 .mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip {
-  border-top-color: rgba(17, 24, 39) !important;
+  border-top-color: rgb(247, 250, 252) !important;
 }
 .mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
-  border-right-color: rgba(17, 24, 39) !important;
+  border-right-color: rgb(247, 250, 252) !important;
 }
 .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
-  border-left-color: rgba(17, 24, 39) !important;
+  border-left-color: rgb(247, 250, 252) !important;
 }
 
 @tailwind utilities;

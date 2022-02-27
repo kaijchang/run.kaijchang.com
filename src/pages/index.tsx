@@ -1,7 +1,6 @@
 import React, {
   LegacyRef,
   memo,
-  MutableRefObject,
   useCallback,
   useEffect,
   useMemo,
@@ -203,7 +202,7 @@ const PlaceSelector: React.FC<{
       {Object.values(visiblePlacesById).length === 0 && (
         <option value={DEFAULT_PLACE.id}>{DEFAULT_PLACE.text}</option>
       )}
-      {Object.values(visiblePlacesById).map((place, idx) => {
+      {Object.values(visiblePlacesById).sort((a, b) => distanceByPlace[b.id] - distanceByPlace[a.id]).map((place, idx) => {
         return (
           <option key={idx} value={place.id}>
             {place.text} (
@@ -363,7 +362,6 @@ const RunMap: React.FC<{
             paint={{
               'line-color': 'black',
               'line-width': 2,
-              'line-dasharray': [1, 2],
             }}
           />
         </Source>
@@ -377,7 +375,6 @@ const RunMap: React.FC<{
                 paint={{
                   'line-color': 'red',
                   'line-width': 2,
-                  'line-dasharray': [1, 2],
                 }}
               />
             </Source>
@@ -388,7 +385,7 @@ const RunMap: React.FC<{
             latitude={hoveredCoords[1]}
             closeButton={false}
           >
-            <div className="text-white">
+            <div className="text-black">
               <p className="text-lg">{manualFocusedFeature.properties.name}</p>
               <p className="text-sm">
                 {dayjs(manualFocusedFeature.properties.start_date_local).format(
