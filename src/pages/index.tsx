@@ -196,7 +196,7 @@ const PlaceSelector: React.FC<{
 
   return (
     <select
-      className="bg-transparent text-white border-2 rounded-md border-white"
+      className="bg-transparent text-black border-2 rounded-md border-black"
       value={selectedPlaceId}
       onChange={e => setSelectedPlaceId(e.target.value)}
     >
