@@ -95,14 +95,14 @@ const RunTimeline: React.FC<{
         preserveAspectRatio="none"
         fill="black"
       >
-        <g strokeWidth={step} stroke="#e0e722">
+        <g strokeWidth={step} stroke="black">
           {activityNodes.map(({ activity }, idx) => {
             const date = dayjs(activity.start_date_local)
             const x = step * (dayjs.duration(date.diff(start)).asDays() + 1)
             return (
               <line
                 key={idx}
-                opacity={visibleYears[date.year()] ? 1 : 0.5}
+                opacity={visibleYears[date.year()] ? 1 : 0.25}
                 onMouseEnter={() => {
                   const feature = activityToFeature(activity)
                   const coords = feature.geometry.coordinates
@@ -310,10 +310,10 @@ const RunMap: React.FC<{
     <>
       <span className="absolute top-0 left-0 m-2 z-10">
         <RunTimeline
-          activityNodes={
-            activityNodes
-              .filter(({ activity }) => dayjs(activity.start_date_local) > dayjs().subtract(3, 'year'))
-          }
+          activityNodes={activityNodes.filter(
+            ({ activity }) =>
+              dayjs(activity.start_date_local) > dayjs().subtract(3, 'year')
+          )}
           visibleYears={visibleYears}
           focusedFeature={focusedFeature}
           focusFeature={focusFeature}
@@ -354,14 +354,14 @@ const RunMap: React.FC<{
           }
         }}
         mapboxApiAccessToken={process.env.GATSBY_MAPBOX_TOKEN}
-        mapStyle="mapbox://styles/kachang/ckcwk1fcn0blk1joa9aowzlur"
+        mapStyle="mapbox://styles/kachang/cl04v5q4u000514nzszvggc21"
       >
         <Source id="run-data" type="geojson" data={geoData}>
           <Layer
             id="run-lines"
             {...LAYER_STYLE}
             paint={{
-              'line-color': '#e0e722',
+              'line-color': 'black',
               'line-width': 2,
               'line-dasharray': [1, 2],
             }}
@@ -440,7 +440,7 @@ const RunOverlay: React.FC<{
   }, [activitiesByYear])
 
   return (
-    <div className="flex flex-row md:flex-col fixed overflow-x-auto md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-4 px-4 md:px-8 rounded-md z-10 bg-black text-white border border-gray-100">
+    <div className="flex flex-row md:flex-col fixed overflow-x-auto md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-4 px-4 md:px-8 rounded-md z-10 bg-gray-100 text-black border border-black">
       {((Object.keys(statsByYear) as unknown) as number[])
         .sort((a, b) => +b - +a)
         .map((year, idx) => (
@@ -454,13 +454,13 @@ const RunOverlay: React.FC<{
               }`}
             >
               <h1
-                className="text-4xl text-neon-yellow leading-tight"
+                className="text-4xl leading-tight tracking-widest italic"
                 onClick={() => setIsYearVisible(year, !visibleYears[year])}
               >
                 {year}
               </h1>
             </button>
-            <div className="text-gray-300">
+            <div className="text-gray-800">
               <p>{statsByYear[year][3]} runs</p>
               <p>{(statsByYear[year][0] / 60 / 60).toFixed(2)} hrs</p>
               <p>{formatMilesDistance(metersToMiles(statsByYear[year][1]))}</p>
@@ -473,15 +473,6 @@ const RunOverlay: React.FC<{
             </div>
           </div>
         ))}
-      <div className="flex-grow" />
-      <div className="flex flex-col font-mono text-md mr-2 md:mr-0">
-        <a href="https://kaijchang.com" target="_blank">
-          kaijchang.com
-        </a>
-        <a href="https://www.strava.com/athletes/57977907" target="_blank">
-          strava
-        </a>
-      </div>
     </div>
   )
 }
@@ -498,7 +489,9 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
   )
 
   const statsByMonth = useMemo(() => {
-    let stats: { [key: number]: { [key: number]: [number, number, number, number] } } = {}
+    let stats: {
+      [key: number]: { [key: number]: [number, number, number, number] }
+    } = {}
     for (const activityNode of activityNodes) {
       const { activity } = activityNode
       const year = new Date(activity.start_date_local).getFullYear()
@@ -507,12 +500,7 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
         stats[year] = {}
       }
       if (!stats[year][month]) {
-        stats[year][month] = [
-          0,
-          0,
-          0,
-          0,
-        ]
+        stats[year][month] = [0, 0, 0, 0]
       }
       stats[year][month] = [
         stats[year][month][0] + activity.elapsed_time,
@@ -609,13 +597,7 @@ export default LandingPage
 
 export const query = graphql`
   query {
-    allStravaActivity(
-      filter: {
-        activity: {
-          type: { eq: "Run" }
-        }
-      }
-    ) {
+    allStravaActivity(filter: { activity: { type: { eq: "Run" } } }) {
       nodes {
         activity {
           id
