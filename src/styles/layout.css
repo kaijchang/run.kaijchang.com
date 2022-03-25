@@ -4,6 +4,10 @@
 
 @tailwind components;
 
+:root {
+  --tw-shadow-color: #000000;
+}
+
 .mapboxgl-popup-content {
   @apply bg-gray-100 !important;
 }

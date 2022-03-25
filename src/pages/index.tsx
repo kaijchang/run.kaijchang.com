@@ -437,12 +437,12 @@ const RunOverlay: React.FC<{
   }, [activitiesByYear])
 
   return (
-    <div className="flex flex-row md:flex-col fixed overflow-x-auto md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-4 px-4 md:px-8 rounded-md z-10 bg-gray-100 text-black border border-black">
+    <div className="flex flex-row md:flex-col fixed overflow-x-auto md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-4 px-4 md:px-8 z-10 bg-gray-100 text-black shadow-solid">
       {((Object.keys(statsByYear) as unknown) as number[])
         .sort((a, b) => +b - +a)
         .map((year, idx) => (
           <div
-            className="w-40 md:w-auto min-w-40 md:min-w-0 mr-4 md:mr-0"
+            className="w-40 md:w-auto min-w-40 md:min-w-0 mr-16 md:mr-0"
             key={idx}
           >
             <button

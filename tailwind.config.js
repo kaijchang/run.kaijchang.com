@@ -9,6 +9,9 @@ module.exports = {
       minWidth: {
         40: '10rem',
       },
+      boxShadow: {
+        solid: '0.5rem 0.5rem var(--tw-shadow-color)'
+      }
     },
   },
   variants: {},
