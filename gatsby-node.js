@@ -18,3 +18,20 @@ exports.onCreateNode = async ({ node, actions, cache }) => {
     })
   }
 }
+
+exports.onCreateWebpackConfig = ({ stage, actions }) => {
+  actions.setWebpackConfig({
+    resolve: {
+      extensions: ['*', '.mjs', '.js', '.json']
+    },
+    module: {
+      rules: [
+        {
+          test: /\.mjs$/,
+          include: /node_modules/,
+          type: 'javascript/auto'
+        }
+      ]
+    }
+  })
+}

@@ -22,5 +22,5 @@ module.exports = {
             },
         },
         `gatsby-plugin-typescript`,
-    ]
+    ],
 };

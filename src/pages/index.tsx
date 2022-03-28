@@ -7,6 +7,7 @@ import React, {
   useState,
   useRef,
 } from 'react'
+import { chakra } from '@chakra-ui/react'
 import { graphql } from 'gatsby'
 
 import ReactMapGL, {
@@ -34,8 +35,6 @@ import {
 } from '../utils/units'
 import { DEFAULT_PLACE } from '../constants'
 import { ActivityNode, PageData, Run, Geocoding } from '../types'
-
-import '../styles/layout.css'
 
 const activityToFeature = (activity: Run) =>
   ({
@@ -307,7 +306,7 @@ const RunMap: React.FC<{
 
   return (
     <>
-      <span className="absolute top-0 left-0 m-2 z-10">
+      <span>
         <RunTimeline
           activityNodes={activityNodes.filter(
             ({ activity }) =>
