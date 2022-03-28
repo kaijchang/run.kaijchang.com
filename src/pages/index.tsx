@@ -7,7 +7,7 @@ import React, {
   useState,
   useRef,
 } from 'react'
-import { chakra } from '@chakra-ui/react'
+import { chakra, Heading, Select, Stack } from '@chakra-ui/react'
 import { graphql } from 'gatsby'
 
 import ReactMapGL, {
@@ -193,8 +193,14 @@ const PlaceSelector: React.FC<{
   }, [selectedPlaceId])
 
   return (
-    <select
-      className="bg-transparent text-black border-2 rounded-md border-black"
+    <Select
+      maxW={300}
+      size="sm"
+      borderColor="black"
+      rounded="md"
+      fontWeight="semibold"
+      borderWidth={2}
+      bg="transparent"
       value={selectedPlaceId}
       onChange={e => setSelectedPlaceId(e.target.value)}
     >
@@ -209,7 +215,7 @@ const PlaceSelector: React.FC<{
           </option>
         )
       })}
-    </select>
+    </Select>
   )
 }
 
@@ -306,18 +312,18 @@ const RunMap: React.FC<{
 
   return (
     <>
-      <span>
+      <chakra.div position="absolute" zIndex={2} margin={2}>
         <RunTimeline
           activityNodes={activityNodes.filter(
             ({ activity }) =>
-              dayjs(activity.start_date_local) > dayjs().subtract(3, 'year')
+              dayjs(activity.start_date_local) > dayjs().subtract(1, 'year')
           )}
           visibleYears={visibleYears}
           focusedFeature={focusedFeature}
           focusFeature={focusFeature}
           unfocusFeature={unfocusFeature}
         />
-        <div className="mt-2">
+        <chakra.div mt={2}>
           <PlaceSelector
             initialPlace={initialPlace as Geocoding['features'][number]}
             viewport={viewport}
@@ -325,8 +331,8 @@ const RunMap: React.FC<{
             visiblePlacesById={visiblePlacesById}
             validNodes={validNodes}
           />
-        </div>
-      </span>
+        </chakra.div>
+      </chakra.div>
       <ReactMapGL
         {...viewport}
         ref={mapRef as LegacyRef<InteractiveMap>}
@@ -436,40 +442,39 @@ const RunOverlay: React.FC<{
   }, [activitiesByYear])
 
   return (
-    <div className="flex flex-row md:flex-col fixed overflow-x-auto md:overflow-x-auto inset-x-0 bottom-0 md:left-auto md:top-0 md:right-0 mx-2 md:ml-0 my-10 py-4 px-4 md:px-8 z-10 bg-gray-100 text-black shadow-solid">
+    <Stack direction={{ base: 'row', md: 'column' }} position="fixed" zIndex={2} right={0} left={{ base: 0, md: 'auto' }} top={{ md: 0 }} bottom={0} overflowY="scroll" my={{ base: 4, md: 12 }} mr={4} ml={{ base: 4, md: 0 }} p={4} background="white" borderColor="black" borderWidth={2} rounded="md">
       {((Object.keys(statsByYear) as unknown) as number[])
         .sort((a, b) => +b - +a)
         .map((year, idx) => (
-          <div
-            className="w-40 md:w-auto min-w-40 md:min-w-0 mr-16 md:mr-0"
+          <chakra.div
+            minW={{ base: 40, md: 0 }}
+            mr={{ base: 4, md: 0 }}
             key={idx}
           >
-            <button
-              className={`cursor-pointer select-none ${
-                visibleYears[year] ? '' : 'opacity-50'
-              }`}
+            <chakra.button
+              opacity={visibleYears[year] ? 1 : 0.5}
             >
-              <h1
+              <Heading
                 className="text-4xl leading-tight tracking-widest italic"
                 onClick={() => setIsYearVisible(year, !visibleYears[year])}
               >
                 {year}
-              </h1>
-            </button>
-            <div className="text-gray-800">
-              <p>{statsByYear[year][3]} runs</p>
-              <p>{(statsByYear[year][0] / 60 / 60).toFixed(2)} hrs</p>
-              <p>{formatMilesDistance(metersToMiles(statsByYear[year][1]))}</p>
-              <p>
+              </Heading>
+            </chakra.button>
+            <chakra.div>
+              <chakra.p>{statsByYear[year][3]} runs</chakra.p>
+              <chakra.p>{(statsByYear[year][0] / 60 / 60).toFixed(2)} hrs</chakra.p>
+              <chakra.p>{formatMilesDistance(metersToMiles(statsByYear[year][1]))}</chakra.p>
+              <chakra.p>
                 {Math.round(
                   metersToFeet(statsByYear[year][2])
                 ).toLocaleString()}{' '}
                 ft elevation
-              </p>
-            </div>
-          </div>
+              </chakra.p>
+            </chakra.div>
+          </chakra.div>
         ))}
-    </div>
+    </Stack>
   )
 }
 
