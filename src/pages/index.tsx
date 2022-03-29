@@ -393,14 +393,14 @@ const RunMap: React.FC<{
             latitude={hoveredCoords[1]}
             closeButton={false}
           >
-            <div className="text-black">
-              <p className="text-lg">{manualFocusedFeature.properties.name}</p>
-              <p className="text-sm">
+            <chakra.div>
+              <chakra.p fontSize="lg">{manualFocusedFeature.properties.name}</chakra.p>
+              <chakra.p fontSize="sm">
                 {dayjs(manualFocusedFeature.properties.start_date_local).format(
                   'MM/DD/YYYY'
                 )}
-              </p>
-              <p>
+              </chakra.p>
+              <chakra.p fontSize="sm">
                 {formatMilesDistance(
                   metersToMiles(manualFocusedFeature.properties.distance)
                 )}{' '}
@@ -411,8 +411,8 @@ const RunMap: React.FC<{
                     'seconds'
                   )
                   .format('HH:mm:ss')}
-              </p>
-            </div>
+              </chakra.p>
+            </chakra.div>
           </Popup>
         )}
       </ReactMapGL>
