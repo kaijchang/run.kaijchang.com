@@ -1,3 +1,5 @@
+import { LayerProps } from "react-map-gl"
+
 export const DEFAULT_PLACE = {
   "id": "place.13229035407559250",
   "center": [
@@ -9,3 +11,11 @@ export const DEFAULT_PLACE = {
   ],
   "text": "San Francisco"
 }
+
+export const DEFAULT_LAYER_STYLE = {
+  type: 'line',
+  layout: {
+    'line-join': 'round',
+    'line-cap': 'round',
+  },
+} as LayerProps
