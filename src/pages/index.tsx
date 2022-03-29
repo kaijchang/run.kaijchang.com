@@ -369,6 +369,7 @@ const RunMap: React.FC<{
             paint={{
               'line-color': 'black',
               'line-width': 2,
+              'line-opacity': 0.3,
             }}
           />
         </Source>
