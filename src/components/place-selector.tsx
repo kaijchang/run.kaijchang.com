@@ -81,6 +81,7 @@ export const PlaceSelector: React.FC<{
         <option value={DEFAULT_PLACE.id}>{DEFAULT_PLACE.text}</option>
       )}
       {Object.values(visiblePlacesById)
+        .filter(place => distanceByPlace[place.id])
         .sort((a, b) => distanceByPlace[b.id] - distanceByPlace[a.id])
         .map((place, idx) => {
           return (
