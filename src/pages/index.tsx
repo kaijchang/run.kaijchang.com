@@ -108,7 +108,7 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
       </Helmet>
       <RunMap
         activityNodes={activityNodes.filter(
-          ({ activity }) => activity.map.summary_polyline !== null
+          ({ activity }) => !!activity.map?.summary_polyline
         )}
         finalPlaceText={finalPlaceText}
         visiblePlacesByText={visiblePlacesByText}

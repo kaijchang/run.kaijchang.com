@@ -11,7 +11,7 @@ export type Run = {
   start_date_local: string
   map: {
     summary_polyline: string
-  }
+  } | null
 }
 
 export type ActivityNode = {
