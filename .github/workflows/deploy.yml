@@ -15,17 +15,22 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '16'
-      - uses: actions/cache@v2
+      - uses: actions/cache/restore@v3
         with:
           path: |
             .cache
-            public
-          key: run-gatsby-cache-v1
+          restore-keys: |
+            run-gatsby-cache-
       - run: yarn install --frozen-lockfile
       - run: yarn build
         env:
           GATSBY_MAPBOX_TOKEN: ${{ secrets.GATSBY_MAPBOX_TOKEN }}
           GATSBY_SOURCE_STRAVA_TOKEN: ${{ secrets.GATSBY_SOURCE_STRAVA_TOKEN }}
+      - uses: actions/cache/save@v3
+        with:
+          path: |
+            .cache
+          key: run-gatsby-cache-${{hashFiles('.cache/caches/gatsby-source-strava')}}
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
