@@ -19,6 +19,7 @@ jobs:
         with:
           path: |
             .cache
+          key: run-gatsby-cache
           restore-keys: |
             run-gatsby-cache-
       - run: yarn install --frozen-lockfile
