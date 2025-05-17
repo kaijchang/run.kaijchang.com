@@ -11,18 +11,18 @@ export const PlaceSelector: React.FC<{
   viewport: InteractiveMapProps
   setViewport: React.Dispatch<React.SetStateAction<InteractiveMapProps>>
   initialPlace: Geocoding['features'][number]
-  visiblePlacesByText: { [id: string]: Geocoding['features'][number] }
+  visiblePlacesById: { [id: string]: Geocoding['features'][number] }
   validNodes: ActivityNode[]
 }> = ({
   viewport,
   setViewport,
   initialPlace,
-  visiblePlacesByText,
+  visiblePlacesById,
   validNodes,
 }) => {
   const isFirstRender = useRef(true)
-  const [selectedPlaceText, setSelectedPlaceText] = useState(
-    initialPlace?.text || DEFAULT_PLACE.text
+  const [selectedPlaceId, setSelectedPlaceId] = useState(
+    initialPlace?.id || DEFAULT_PLACE.id
   )
   const distanceByPlace = useMemo(() => {
     const distances: { [key: string]: number } = {}
@@ -31,28 +31,28 @@ export const PlaceSelector: React.FC<{
         feature.place_type.includes('place')
       )
       if (place) {
-        distances[place.text] = (distances[place.text] || 0) + activity.distance
+        distances[place.id] = (distances[place.id] || 0) + activity.distance
       }
     })
     return distances
   }, [validNodes])
 
   useEffect(() => {
-    if (Object.values(visiblePlacesByText).length === 0) {
-      setSelectedPlaceText(DEFAULT_PLACE.text)
-    } else if (!(selectedPlaceText in visiblePlacesByText)) {
-      setSelectedPlaceText(Object.values(visiblePlacesByText)[0].text)
+    if (Object.values(visiblePlacesById).length === 0) {
+      setSelectedPlaceId(DEFAULT_PLACE.id)
+    } else if (!(selectedPlaceId in visiblePlacesById)) {
+      setSelectedPlaceId(Object.values(visiblePlacesById)[0].id)
     }
-  }, [visiblePlacesByText])
+  }, [visiblePlacesById])
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
       return
     }
     const selectedPlace =
-      selectedPlaceText === DEFAULT_PLACE.text
+      selectedPlaceId === DEFAULT_PLACE.id
         ? DEFAULT_PLACE
-        : visiblePlacesByText[selectedPlaceText]
+        : visiblePlacesById[selectedPlaceId]
     console.log(selectedPlace)
     setViewport({
       ...viewport,
@@ -63,7 +63,7 @@ export const PlaceSelector: React.FC<{
       transitionInterpolator: new FlyToInterpolator(),
       transitionEasing: d3.easeQuad,
     })
-  }, [selectedPlaceText])
+  }, [selectedPlaceId])
 
   return (
     <Select
@@ -74,20 +74,20 @@ export const PlaceSelector: React.FC<{
       fontWeight="semibold"
       borderWidth={2}
       bg="transparent"
-      value={selectedPlaceText}
-      onChange={e => setSelectedPlaceText(e.target.value)}
+      value={selectedPlaceId}
+      onChange={e => setSelectedPlaceId(e.target.value)}
     >
-      {Object.values(visiblePlacesByText).length === 0 && (
-        <option value={DEFAULT_PLACE.text}>{DEFAULT_PLACE.text}</option>
+      {Object.values(visiblePlacesById).length === 0 && (
+        <option value={DEFAULT_PLACE.id}>{DEFAULT_PLACE.text}</option>
       )}
-      {Object.values(visiblePlacesByText)
-        .filter(place => distanceByPlace[place.text])
-        .sort((a, b) => distanceByPlace[b.text] - distanceByPlace[a.text])
+      {Object.values(visiblePlacesById)
+        .filter(place => distanceByPlace[place.id])
+        .sort((a, b) => distanceByPlace[b.id] - distanceByPlace[a.id])
         .map((place, idx) => {
           return (
-            <option key={idx} value={place.text}>
+            <option key={idx} value={place.id}>
               {place.text} (
-              {formatMilesDistance(metersToMiles(distanceByPlace[place.text]))})
+              {formatMilesDistance(metersToMiles(distanceByPlace[place.id]))})
             </option>
           )
         })}

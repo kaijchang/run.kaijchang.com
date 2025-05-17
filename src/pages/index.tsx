@@ -71,7 +71,7 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
     )
   )
 
-  const [finalPlaceText, visiblePlacesByText] = useMemo(
+  const [finalPlaceId, visiblePlacesById] = useMemo(
     () =>
       activityNodes
         .filter(
@@ -79,22 +79,22 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
             visibleYears[new Date(activity.start_date_local).getFullYear()]
         )
         .reduce(
-          ([finalPlaceText, places], { activity, fields: { geocoding } }) => {
+          ([finalPlaceId, places], { activity, fields: { geocoding } }) => {
             geocoding.features.forEach(feature => {
               if (feature.place_type.includes('place')) {
-                if (!(feature.text in places)) places[feature.text] = feature
+                if (!(feature.id in places)) places[feature.id] = feature
                 if (activity.start_latlng) {
                   places[
-                    feature.text
+                    feature.id
                   ].center = activity.start_latlng.slice().reverse() as [
                     number,
                     number
                   ]
                 }
-                finalPlaceText = feature.text
+                finalPlaceId = feature.id
               }
             })
-            return [finalPlaceText, places]
+            return [finalPlaceId, places]
           },
           ['', {}] as [string, { [key: string]: Geocoding['features'][number] }]
         ),
@@ -110,8 +110,8 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
         activityNodes={activityNodes.filter(
           ({ activity }) => !!activity.map?.summary_polyline
         )}
-        finalPlaceText={finalPlaceText}
-        visiblePlacesByText={visiblePlacesByText}
+        finalPlaceId={finalPlaceId}
+        visiblePlacesById={visiblePlacesById}
         visibleYears={visibleYears}
       />
       <StatsOverlay

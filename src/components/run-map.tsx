@@ -25,10 +25,10 @@ import { formatMilesDistance, metersToMiles } from '../utils/units'
 
 export const RunMap: React.FC<{
   activityNodes: ActivityNode[]
-  finalPlaceText: string
-  visiblePlacesByText: { [text: string]: Geocoding['features'][number] }
+  finalPlaceId: string
+  visiblePlacesById: { [text: string]: Geocoding['features'][number] }
   visibleYears: { [year: number]: boolean }
-}> = ({ activityNodes, finalPlaceText, visiblePlacesByText, visibleYears }) => {
+}> = ({ activityNodes, finalPlaceId, visiblePlacesById, visibleYears }) => {
   const mapRef = useRef<InteractiveMap>()
   const [
     manualFocusedFeature,
@@ -46,7 +46,7 @@ export const RunMap: React.FC<{
   )
 
   const initialPlace =
-    (finalPlaceText && visiblePlacesByText[finalPlaceText]) || DEFAULT_PLACE
+    (finalPlaceId && visiblePlacesById[finalPlaceId]) || DEFAULT_PLACE
 
   const [viewport, setViewport] = useState<InteractiveMapProps>({
     width: '100vw',
@@ -132,7 +132,7 @@ export const RunMap: React.FC<{
             initialPlace={initialPlace as Geocoding['features'][number]}
             viewport={viewport}
             setViewport={setViewport}
-            visiblePlacesByText={visiblePlacesByText}
+            visiblePlacesById={visiblePlacesById}
             validNodes={validNodes}
           />
         </chakra.div>
