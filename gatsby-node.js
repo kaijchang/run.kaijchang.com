@@ -9,7 +9,7 @@ exports.onCreateNode = async ({ node, actions, cache }) => {
     if (!data && node.activity) {
       const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${node.activity.start_latlng[1]},${node.activity.start_latlng[0]}.json?access_token=${process.env.GATSBY_MAPBOX_TOKEN}`)
       data = await res.json()
-      // 1.5x the rate limit of 600 requests per mintue
+      // 1.5x the rate limit of 600 requests per minute
       await new Promise(r => setTimeout(r, 60 * 1000 / 600 * 2))
     }
     await cache.set(key, data)
