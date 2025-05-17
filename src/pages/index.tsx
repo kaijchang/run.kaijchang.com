@@ -23,30 +23,29 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
     [data.allStravaActivity.nodes]
   )
 
-  const statsByMonth = useMemo(() => {
-    let stats: {
-      [key: number]: { [key: number]: [number, number, number, number] }
-    } = {}
-    for (const activityNode of activityNodes) {
-      const { activity } = activityNode
-      const year = new Date(activity.start_date_local).getFullYear()
-      const month = new Date(activity.start_date_local).getMonth()
-      if (!stats[year]) {
-        stats[year] = {}
-      }
-      if (!stats[year][month]) {
-        stats[year][month] = [0, 0, 0, 0]
-      }
-      stats[year][month] = [
-        stats[year][month][0] + activity.elapsed_time,
-        stats[year][month][1] + metersToMiles(activity.distance),
-        stats[year][month][2] + activity.total_elevation_gain,
-        stats[year][month][3] + 1,
-      ]
-    }
-    return stats
-  }, [activityNodes])
-  console.log(statsByMonth)
+  // const statsByMonth = useMemo(() => {
+  //   let stats: {
+  //     [key: number]: { [key: number]: [number, number, number, number] }
+  //   } = {}
+  //   for (const activityNode of activityNodes) {
+  //     const { activity } = activityNode
+  //     const year = new Date(activity.start_date_local).getFullYear()
+  //     const month = new Date(activity.start_date_local).getMonth()
+  //     if (!stats[year]) {
+  //       stats[year] = {}
+  //     }
+  //     if (!stats[year][month]) {
+  //       stats[year][month] = [0, 0, 0, 0]
+  //     }
+  //     stats[year][month] = [
+  //       stats[year][month][0] + activity.elapsed_time,
+  //       stats[year][month][1] + metersToMiles(activity.distance),
+  //       stats[year][month][2] + activity.total_elevation_gain,
+  //       stats[year][month][3] + 1,
+  //     ]
+  //   }
+  //   return stats
+  // }, [activityNodes])
 
   const activitiesByYear = useMemo(
     () =>
