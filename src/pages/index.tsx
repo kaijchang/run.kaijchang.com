@@ -7,7 +7,6 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 dayjs.extend(duration)
 
-import { metersToMiles } from '../utils/units'
 import { ActivityNode, PageData, Geocoding } from '../types'
 import { RunMap } from '../components/run-map'
 import { StatsOverlay } from '../components/stats-overlay'
