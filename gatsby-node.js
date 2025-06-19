@@ -14,7 +14,7 @@ exports.onCreateNode = async ({ node, actions, cache }) => {
       } while (res.status === 429)
 
       if (res.status !== 200) {
-        throw new Error(`Error fetching geocoding data: ${res.status} ${res.statusText}\nResponse: ${JSON.stringify(res.json())}\nActivity: ${JSON.stringify(node.activity)}`)
+        throw new Error(`Error fetching geocoding data: ${res.status} ${res.statusText}\nResponse: ${JSON.stringify(await res.json())}\nActivity: ${JSON.stringify(node.activity)}`)
       }
 
       data = await res.json()

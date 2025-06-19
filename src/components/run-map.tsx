@@ -40,6 +40,7 @@ export const RunMap: React.FC<{
     () =>
       activityNodes.filter(
         ({ activity }) =>
+          !!activity.map &&
           visibleYears[new Date(activity.start_date_local).getFullYear()]
       ),
     [activityNodes, visibleYears]
@@ -177,6 +178,7 @@ export const RunMap: React.FC<{
         </Source>
         {focusedFeature &&
           manualFocusedFeature &&
+          manualFocusedFeature.geometry &&
           manualFocusedFeature.id === focusedFeature.id && (
             <Source id="focused-feature" type="geojson" data={focusedFeature}>
               <Layer
