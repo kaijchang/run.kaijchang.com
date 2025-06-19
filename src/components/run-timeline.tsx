@@ -57,17 +57,16 @@ export const RunTimeline: React.FC<{
                 opacity={visibleYears[date.year()] ? 1 : 0.25}
                 onMouseEnter={() => {
                   const feature = activityToFeature(activity)
+                  unfocusFeature()
 
                   if (!!activity.map) {
                     const coords = feature.geometry.coordinates
-                    unfocusFeature()
                     focusFeature(
                       true,
                       feature,
                       coords[Math.round(coords.length / 2)] as [number, number]
                     )
                   } else {
-                    unfocusFeature()
                     focusFeature(
                       false,
                       feature,
