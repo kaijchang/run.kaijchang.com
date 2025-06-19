@@ -5,6 +5,6 @@ export const activityToFeature = (activity: Run) =>
 ({
   id: activity.id,
   type: 'Feature',
-  geometry: activity.map ? polyline.toGeoJSON(activity.map!.summary_polyline) : null,
+  geometry: activity.map && polyline.toGeoJSON(activity.map!.summary_polyline),
   properties: activity,
 } as GeoJSON.Feature<GeoJSON.LineString, Run>)
