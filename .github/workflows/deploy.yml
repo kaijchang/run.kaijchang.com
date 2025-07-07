@@ -17,7 +17,7 @@ jobs:
           node-version: '16'
       - uses: actions/cache/restore@v3
         with:
-          path: |
+          path:
             .cache
             public
           key: run-gatsby-cache
@@ -30,7 +30,7 @@ jobs:
           GATSBY_SOURCE_STRAVA_TOKEN: ${{ secrets.GATSBY_SOURCE_STRAVA_TOKEN }}
       - uses: actions/cache/save@v3
         with:
-          path: |
+          path:
             .cache
             public
           key: run-gatsby-cache-${{hashFiles('.cache/caches/gatsby-source-strava')}}
