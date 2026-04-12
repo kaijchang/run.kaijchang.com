@@ -77,7 +77,9 @@ const LandingPage: React.FC<{ data: PageData }> = ({ data }) => {
             visibleYears[new Date(activity.start_date_local).getFullYear()]
         )
         .reduce(
-          ([finalPlaceId, places], { activity, fields: { geocoding } }) => {
+          ([finalPlaceId, places], { activity, fields }) => {
+            if (!fields?.geocoding) return [finalPlaceId, places]
+            const { geocoding } = fields
             geocoding.features.forEach(feature => {
               if (feature.place_type.includes('place')) {
                 if (!(feature.id in places)) places[feature.id] = feature

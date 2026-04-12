@@ -26,7 +26,9 @@ export const PlaceSelector: React.FC<{
   )
   const distanceByPlace = useMemo(() => {
     const distances: { [key: string]: number } = {}
-    validNodes.forEach(({ activity, fields: { geocoding } }) => {
+    validNodes.forEach(({ activity, fields }) => {
+      if (!fields?.geocoding) return
+      const { geocoding } = fields
       const place = geocoding.features.find(feature =>
         feature.place_type.includes('place')
       )
