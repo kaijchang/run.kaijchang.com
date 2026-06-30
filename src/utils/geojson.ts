@@ -15,16 +15,34 @@ const haversineDistance = (
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-const splitLineString = (
-  coords: number[][],
-  averageSpeed: number
-): number[][][] => {
-  const threshold = averageSpeed * 100
+// A "jump" is the straight artifact left when a watch is paused and resumed
+// somewhere else, or when GPS drops out — we hide it by splitting the path
+// there. The catch: summary_polyline is geometrically simplified, so a long
+// straight road also collapses to two far-apart points. A fixed distance
+// threshold (the old `average_speed * 100`) couldn't tell those apart and cut
+// real straightaways. Instead, only treat a gap as a jump when it both clears
+// an absolute floor AND dwarfs the activity's own typical point spacing —
+// something a genuine straight segment never does.
+const JUMP_FLOOR_METERS = 250
+const JUMP_SPACING_MULTIPLE = 10
+
+const splitLineString = (coords: number[][]): number[][][] => {
+  if (coords.length < 2) {
+    return []
+  }
+  const gaps = coords
+    .slice(1)
+    .map((coord, i) => haversineDistance(coords[i], coord))
+  const medianGap = [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)]
+  const threshold = Math.max(
+    JUMP_FLOOR_METERS,
+    medianGap * JUMP_SPACING_MULTIPLE
+  )
+
   const segments: number[][][] = []
   let current: number[][] = [coords[0]]
   for (let i = 1; i < coords.length; i++) {
-    const dist = haversineDistance(coords[i - 1], coords[i])
-    if (dist > threshold) {
+    if (gaps[i - 1] > threshold) {
       segments.push(current)
       current = []
     }
@@ -44,7 +62,7 @@ export const activityToFeature = (activity: Run) => {
     } as GeoJSON.Feature<GeoJSON.MultiLineString, Run>
   }
   const decoded = polyline.toGeoJSON(activity.map.summary_polyline)
-  const segments = splitLineString(decoded.coordinates, activity.average_speed)
+  const segments = splitLineString(decoded.coordinates)
   return {
     id: activity.id,
     type: 'Feature',
