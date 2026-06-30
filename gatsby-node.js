@@ -1,12 +1,17 @@
 const fetch = require('node-fetch')
 
-exports.onCreateNode = async ({ node, actions, cache }) => {
+let geocodeFetched = 0
+let geocodeCached = 0
+
+exports.onCreateNode = async ({ node, actions, cache, reporter }) => {
   const { createNodeField } = actions
-  
+
   if (node.internal.owner === 'gatsby-source-strava') {
     const key = node.internal.contentDigest
     let data = await cache.get(key)
     if (!data && node.activity) {
+      const label = node.activity.name || `activity ${node.activity.id}`
+      reporter.info(`[strava-geocoding] fetching #${++geocodeFetched}: ${label} @ ${node.activity.start_latlng.join(', ')}`)
       let res;
       do {
         res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${node.activity.start_latlng[1]},${node.activity.start_latlng[0]}.json?access_token=${process.env.GATSBY_MAPBOX_TOKEN}`)
@@ -18,6 +23,8 @@ exports.onCreateNode = async ({ node, actions, cache }) => {
       }
 
       data = await res.json()
+    } else if (node.activity) {
+      geocodeCached++
     }
     await cache.set(key, data)
     createNodeField({
@@ -26,6 +33,10 @@ exports.onCreateNode = async ({ node, actions, cache }) => {
       value: data
     })
   }
+}
+
+exports.onPostBootstrap = ({ reporter }) => {
+  reporter.info(`[strava-geocoding] done: ${geocodeFetched} fetched, ${geocodeCached} from cache`)
 }
 
 exports.onCreateWebpackConfig = ({ stage, actions }) => {

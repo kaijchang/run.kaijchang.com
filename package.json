@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build": "gatsby build",
-    "develop": "gatsby develop",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider gatsby build",
+    "develop": "NODE_OPTIONS=--openssl-legacy-provider gatsby develop",
     "format": "prettier --write src/**/*.{ts,tsx}",
     "start": "npm run develop",
     "serve": "gatsby serve",

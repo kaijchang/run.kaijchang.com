@@ -55,3 +55,20 @@ export const activityToFeature = (activity: Run) => {
     properties: activity,
   } as GeoJSON.Feature<GeoJSON.LineString | GeoJSON.MultiLineString, Run>
 }
+
+// Returns a representative midpoint to anchor the run's popup on. The geometry
+// may be a LineString (number[][]) or a MultiLineString (number[][][], when the
+// run was split at jumps), so flatten to a single list of points before picking
+// the middle one. Returns null when there is no geometry to anchor to.
+export const featureMidpoint = (
+  feature: GeoJSON.Feature<GeoJSON.LineString | GeoJSON.MultiLineString, Run>
+): [number, number] | null => {
+  const points =
+    feature.geometry?.type === 'MultiLineString'
+      ? (feature.geometry.coordinates as number[][][]).flat()
+      : (feature.geometry?.coordinates as number[][]) ?? []
+  if (!points.length) {
+    return null
+  }
+  return points[Math.floor(points.length / 2)] as [number, number]
+}

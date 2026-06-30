@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 
 import { ActivityNode, Run } from '../types'
-import { activityToFeature } from '../utils/geojson'
+import { activityToFeature, featureMidpoint } from '../utils/geojson'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 dayjs.extend(duration)
@@ -9,10 +9,13 @@ dayjs.extend(duration)
 export const RunTimeline: React.FC<{
   activityNodes: ActivityNode[]
   visibleYears: { [year: number]: boolean }
-  focusedFeature: GeoJSON.Feature<GeoJSON.LineString, Run> | null
+  focusedFeature: GeoJSON.Feature<
+    GeoJSON.LineString | GeoJSON.MultiLineString,
+    Run
+  > | null
   focusFeature: (
     popup: boolean,
-    feature: GeoJSON.Feature<GeoJSON.LineString, Run>,
+    feature: GeoJSON.Feature<GeoJSON.LineString | GeoJSON.MultiLineString, Run>,
     longLat?: [number, number]
   ) => void
   unfocusFeature: () => void
@@ -59,18 +62,11 @@ export const RunTimeline: React.FC<{
                   const feature = activityToFeature(activity)
                   unfocusFeature()
 
-                  if (!!activity.map) {
-                    const coords = feature.geometry.coordinates
-                    focusFeature(
-                      true,
-                      feature,
-                      coords[Math.round(coords.length / 2)] as [number, number]
-                    )
+                  const midpoint = featureMidpoint(feature)
+                  if (midpoint) {
+                    focusFeature(true, feature, midpoint)
                   } else {
-                    focusFeature(
-                      false,
-                      feature,
-                    )
+                    focusFeature(false, feature)
                   }
                 }}
                 x1={x}

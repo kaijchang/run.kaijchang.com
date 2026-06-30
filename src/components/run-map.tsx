@@ -17,7 +17,7 @@ import ReactMapGL, {
 } from 'react-map-gl'
 import { DEFAULT_LAYER_STYLE, DEFAULT_PLACE } from '../constants'
 import { ActivityNode, Geocoding, Run } from '../types'
-import { activityToFeature } from '../utils/geojson'
+import { activityToFeature, featureMidpoint } from '../utils/geojson'
 import { RunTimeline } from './run-timeline'
 import dayjs from 'dayjs'
 import { PlaceSelector } from './place-selector'
@@ -33,7 +33,10 @@ export const RunMap: React.FC<{
   const [
     manualFocusedFeature,
     setManualFocusedFeature,
-  ] = useState<GeoJSON.Feature<GeoJSON.LineString, Run> | null>(null)
+  ] = useState<GeoJSON.Feature<
+    GeoJSON.LineString | GeoJSON.MultiLineString,
+    Run
+  > | null>(null)
   const [hoveredCoords, setHoveredCoords] = useState<[number, number] | null>()
 
   const validNodes = useMemo(
@@ -69,7 +72,7 @@ export const RunMap: React.FC<{
   const focusFeature = useCallback(
     (
       popup: boolean,
-      feature: GeoJSON.Feature<GeoJSON.LineString, Run>,
+      feature: GeoJSON.Feature<GeoJSON.LineString | GeoJSON.MultiLineString, Run>,
       lngLat?: [number, number]
     ) => {
       setManualFocusedFeature(feature)
@@ -101,12 +104,10 @@ export const RunMap: React.FC<{
         const feature = activityToFeature(
           validNodes[validNodes.length - 1].activity
         )
-        const coords = feature.geometry.coordinates
-        focusFeature(
-          true,
-          feature,
-          coords[Math.round(coords.length / 2)] as [number, number]
-        )
+        const midpoint = featureMidpoint(feature)
+        if (midpoint) {
+          focusFeature(true, feature, midpoint)
+        }
       }
     }
     mapRef.current?.getMap().on('style.load', mapStyleLoadListener)
@@ -157,7 +158,10 @@ export const RunMap: React.FC<{
           if (feature) {
             focusFeature(
               true,
-              feature as GeoJSON.Feature<GeoJSON.LineString, Run>,
+              feature as GeoJSON.Feature<
+                GeoJSON.LineString | GeoJSON.MultiLineString,
+                Run
+              >,
               e.lngLat
             )
           }
