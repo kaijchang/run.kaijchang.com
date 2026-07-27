@@ -16,24 +16,43 @@ const haversineDistance = (
 }
 
 // A "jump" is the long straight artifact left when a watch is paused and
-// resumed somewhere else, or when GPS drops out — we hide it by splitting the
-// path there. summary_polyline is geometrically simplified, so ordinary
-// straight roads also collapse to two far-apart points; scaling the threshold
-// by speed or by the activity's own point spacing cut those real straightaways.
-// Across the full activity history the largest *normal* gap tops out around
-// ~375m (p90) / ~590m (p95), while real jumps run 600m to several km. So we
-// split only on gaps past a flat, conservative threshold that sits just above
-// that normal range. (Tune JUMP_THRESHOLD_METERS to cut more/less aggressively.)
-const JUMP_THRESHOLD_METERS = 600
+// resumed somewhere else, or when GPS teleports — we hide it by splitting the
+// path there. The hard part is telling a jump apart from a genuinely long,
+// straight stretch of running: summary_polyline is geometrically simplified, so
+// a real straightaway (a bridge, a seawall path, a highway shoulder) also
+// collapses to two points hundreds — occasionally thousands — of meters apart.
+// Distance alone can't distinguish them at any threshold.
+//
+// The tell is `activity.distance`, the distance actually recorded. A real jump
+// inflates the drawn polyline *beyond* what you ran (the teleport adds length
+// nobody moved), so the path is meaningfully longer than the recorded distance.
+// A long straight — or a simplified curve — never is; if anything the polyline
+// runs a bit short because simplification cuts corners. So we only look for
+// jumps when the path carries real "phantom" distance, and then cut only the
+// large gaps. (JUMP_GAP_METERS / JUMP_EXCESS_METERS are the tuning knobs.)
+const JUMP_GAP_METERS = 600
+const JUMP_EXCESS_METERS = 400
 
-const splitLineString = (coords: number[][]): number[][][] => {
+const splitLineString = (
+  coords: number[][],
+  distance: number
+): number[][][] => {
   if (coords.length < 2) {
     return []
   }
+  const gaps = coords
+    .slice(1)
+    .map((coord, i) => haversineDistance(coords[i], coord))
+  const excess = gaps.reduce((a, b) => a + b, 0) - distance
+  // No phantom distance → no jump to hide, keep the run whole.
+  if (excess <= JUMP_EXCESS_METERS) {
+    return [coords]
+  }
+
   const segments: number[][][] = []
   let current: number[][] = [coords[0]]
   for (let i = 1; i < coords.length; i++) {
-    if (haversineDistance(coords[i - 1], coords[i]) > JUMP_THRESHOLD_METERS) {
+    if (gaps[i - 1] > JUMP_GAP_METERS) {
       segments.push(current)
       current = []
     }
@@ -53,7 +72,7 @@ export const activityToFeature = (activity: Run) => {
     } as GeoJSON.Feature<GeoJSON.MultiLineString, Run>
   }
   const decoded = polyline.toGeoJSON(activity.map.summary_polyline)
-  const segments = splitLineString(decoded.coordinates)
+  const segments = splitLineString(decoded.coordinates, activity.distance)
   return {
     id: activity.id,
     type: 'Feature',
